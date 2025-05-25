@@ -1,107 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NeuraPlumb Scoring Tool</title>
-  <style>
-    body {
-      font-family: Arial;
-      padding: 2rem;
-      max-width: 600px;
-      margin: auto;
+<script type="module">
+  // Firebase setup
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
+    authDomain: "neuraplumb.firebaseapp.com",
+    projectId: "neuraplumb",
+    storageBucket: "neuraplumb.appspot.com",
+    messagingSenderId: "329025414261",
+    appId: "1:329025414261:web:547b1254f89215b82d443c"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const storage = getStorage(app);
+  const auth = getAuth(app);
+
+  // Auto login for dev/testing
+  signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!")
+    .then(() => console.log("Signed in"))
+    .catch(error => alert("Login failed: " + error.message));
+
+  window.getScore = async function () {
+    const job = document.getElementById('job').value;
+    const scope = document.getElementById('scope').value;
+    const photo = document.getElementById('photo').files[0];
+
+    if (!job || !scope || !photo) {
+      document.getElementById('result').innerText = "Please complete all fields.";
+      return;
     }
-    label, select, input {
-      display: block;
-      margin-top: 1rem;
-      width: 100%;
+
+    const user = auth.currentUser;
+    if (!user) {
+      alert("You must be signed in to upload.");
+      return;
     }
-    button {
-      margin-top: 1.5rem;
-      padding: 0.5rem 1rem;
-    }
-    #result {
-      margin-top: 2rem;
-      font-weight: bold;
-    }
-  </style>
 
-  <script type="module">
-    // Firebase setup
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    const fileRef = ref(storage, `uploads/${user.uid}/${photo.name}`);
+    await uploadBytes(fileRef, photo);
+    alert("Upload complete!");
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs"
-      authDomain: "neuraplumb.firebaseapp.com",
-      projectId: "neuraplumb",
-      storageBucket: "neuraplumb.appspot.com",
-      messagingSenderId: "329025414261"
-      appId: "1:329025414261:web:547b1254f89215b82d443c"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const storage = getStorage(app);
-    const auth = getAuth(app);
-
-    // Automatically log in (for dev/testing only)
-    signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!")
-      .then(() => console.log("Signed in"))
-      .catch(error => alert("Login failed: " + error.message));
-
-    window.getScore = async function () {
-      const job = document.getElementById('job').value;
-      const scope = document.getElementById('scope').value;
-      const photo = document.getElementById('photo').files[0];
-
-      if (!job || !scope || !photo) {
-        document.getElementById('result').innerText = "Please complete all fields.";
-        return;
-      }
-
-      // Upload photo to Firebase Storage
-      const user = auth.currentUser;
-      if (!user) {
-        alert("You must be signed in to upload.");
-        return;
-      }
-
-      const fileRef = ref(storage, `uploads/${user.uid}/${photo.name}`);
-      await uploadBytes(fileRef, photo);
-      alert("Upload complete!");
-
-      // Show mock NeuraScore
-      const mockScore = Math.floor(Math.random() * 5) + 1;
-      document.getElementById('result').innerText = "Your NeuraScore: " + mockScore + "/5 (mock)";
-    };
-  </script>
-</head>
-
-<body>
-  <h1>NeuraPlumb Scoring Tool</h1>
-
-  <label for="photo">Upload Photo:</label>
-  <input type="file" id="photo" />
-
-  <label for="job">Job Type:</label>
-  <select id="job">
-    <option value="">Select Job Type</option>
-    <option value="water_heater">Water Heater</option>
-    <option value="sewer">Sewer</option>
-    <option value="repipe">Copper Repipe</option>
-    <option value="drain">Drain Repair</option>
-  </select>
-
-  <label for="scope">Scope of Work:</label>
-  <select id="scope">
-    <option value="">Select Scope</option>
-    <option value="full_install">Full Install</option>
-    <option value="repair_only">Repair Only</option>
-    <option value="replacement">Replacement</option>
-  </select>
-
-  <button onclick="getScore()">Get NeuraScore</button>
-  <div id="result"></div>
-</body>
-</html>
+    const mockScore = Math.floor(Math.random() * 5) + 1;
+    document.getElementById('result').innerText = "Your NeuraScore: " + mockScore + "/5 (mock)";
+  };
+</script>
