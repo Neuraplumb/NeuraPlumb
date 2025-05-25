@@ -1,7 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <script type="module">
+  // Firebase setup
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBFk8Ei01icNq4ER0zQwWETKyUTPkPao6Y",
+    authDomain: "neuraplumb.firebaseapp.com",
+    projectId: "neuraplumb",
+    storageBucket: "neuraplumb.appspot.com",
+    messagingSenderId: "329025414261",
+    appId: "1:329025414261:web:547b1254f89215b82d443c"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const storage = getStorage(app);
+  const auth = getAuth(app);
+</script>  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NeuraPlumb Scoring Tool</title>
   <style>
