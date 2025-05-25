@@ -25,6 +25,54 @@
       font-weight: bold;
     }
   </style>
+  <script type="module">
+    // Firebase setup
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
+      authDomain: "neuraplumb.firebaseapp.com",
+      projectId: "neuraplumb",
+      storageBucket: "neuraplumb.appspot.com",
+      messagingSenderId: "329025414261",
+      appId: "1:329025414261:web:547b1254f89215b82d443c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+
+    // Auto-login for dev/testing
+    signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!")
+      .then(() => console.log("Signed in"))
+      .catch(error => alert("Login failed: " + error.message));
+
+    window.getScore = async function () {
+      const job = document.getElementById('job').value;
+      const scope = document.getElementById('scope').value;
+      const photo = document.getElementById('photo').files[0];
+
+      if (!job || !scope || !photo) {
+        document.getElementById('result').innerText = "Please complete all fields.";
+        return;
+      }
+
+      const user = auth.currentUser;
+      if (!user) {
+        alert("You must be signed in to upload.");
+        return;
+      }
+
+      const fileRef = ref(storage, `uploads/${user.uid}/${photo.name}`);
+      await uploadBytes(fileRef, photo);
+      console.log("Upload complete");
+
+      const mockScore = Math.floor(Math.random() * 5) + 1;
+      document.getElementById('result').innerText = "Your NeuraScore: " + mockScore + "/5 (mock)";
+    };
+  </script>
 </head>
 <body>
   <h1>NeuraPlumb Scoring Tool</h1>
@@ -51,21 +99,5 @@
 
   <button onclick="getScore()">Get NeuraScore</button>
   <div id="result"></div>
-
-  <script>
-    function getScore() {
-      const job = document.getElementById('job').value;
-      const scope = document.getElementById('scope').value;
-      const photo = document.getElementById('photo').files[0];
-
-      if (!job || !scope || !photo) {
-        document.getElementById('result').innerText = "Please complete all fields.";
-        return;
-      }
-
-      const mockScore = Math.floor(Math.random() * 5) + 1;
-      document.getElementById('result').innerText = "Your NeuraScore: " + mockScore + "/5 (mock)";
-    }
-  </script>
 </body>
 </html>
