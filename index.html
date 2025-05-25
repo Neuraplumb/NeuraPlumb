@@ -1,25 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script type="module">
-  // Firebase setup
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-  import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBFk8Ei01icNq4ER0zQwWETKyUTPkPao6Y",
-    authDomain: "neuraplumb.firebaseapp.com",
-    projectId: "neuraplumb",
-    storageBucket: "neuraplumb.appspot.com",
-    messagingSenderId: "329025414261",
-    appId: "1:329025414261:web:547b1254f89215b82d443c"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const storage = getStorage(app);
-  const auth = getAuth(app);
-</script>  <meta charset="UTF-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NeuraPlumb Scoring Tool</title>
   <style>
@@ -43,7 +25,59 @@
       font-weight: bold;
     }
   </style>
+
+  <script type="module">
+    // Firebase setup
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBFk8Ei01icNq4ER0zQwWETKyUTPkPao6Y",
+      authDomain: "neuraplumb.firebaseapp.com",
+      projectId: "neuraplumb",
+      storageBucket: "neuraplumb.appspot.com",
+      messagingSenderId: "329025414261",
+      appId: "1:329025414261:web:547b1254f89215b82d443c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+    const auth = getAuth(app);
+
+    // Automatically log in (for dev/testing only)
+    signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!")
+      .then(() => console.log("Signed in"))
+      .catch(error => alert("Login failed: " + error.message));
+
+    window.getScore = async function () {
+      const job = document.getElementById('job').value;
+      const scope = document.getElementById('scope').value;
+      const photo = document.getElementById('photo').files[0];
+
+      if (!job || !scope || !photo) {
+        document.getElementById('result').innerText = "Please complete all fields.";
+        return;
+      }
+
+      // Upload photo to Firebase Storage
+      const user = auth.currentUser;
+      if (!user) {
+        alert("You must be signed in to upload.");
+        return;
+      }
+
+      const fileRef = ref(storage, `uploads/${user.uid}/${photo.name}`);
+      await uploadBytes(fileRef, photo);
+      alert("Upload complete!");
+
+      // Show mock NeuraScore
+      const mockScore = Math.floor(Math.random() * 5) + 1;
+      document.getElementById('result').innerText = "Your NeuraScore: " + mockScore + "/5 (mock)";
+    };
+  </script>
 </head>
+
 <body>
   <h1>NeuraPlumb Scoring Tool</h1>
 
@@ -68,67 +102,6 @@
   </select>
 
   <button onclick="getScore()">Get NeuraScore</button>
-
   <div id="result"></div>
-
-  <script>
-    function getScore() {
-      const job = document.getElementById('job').value;
-      const scope = document.getElementById('scope').value;
-      const photo = document.getElementById('photo').files[0];
-
-      if (!job || !scope || !photo) {
-        document.getElementById('result').innerText = "Please complete all fields.";
-        return;
-      }
-
-      const mockScore = Math.floor(Math.random() * 5) + 1;
-      document.getElementById('result').innerText = "Your NeuraScore: " + mockScore + "/5 (mock)";
-    }
-  </script>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBFk8Ei01icNq4ER0zQwWETKyUTPkPao6Y",
-    authDomain: "neuraplumb.firebaseapp.com",
-    projectId: "neuraplumb",
-    storageBucket: "neuraplumb.appspot.com",
-    messagingSenderId: "329025414261",
-    appId: "1:329025414261:web:547b1254f89215b82d443c"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const storage = getStorage(app);
-  const auth = getAuth(app);
-
-  document.querySelector("button").addEventListener("click", async () => {
-    const file = document.getElementById("photo").files[0];
-    if (!file) {
-      alert("Please select a photo first.");
-      return;
-    }
-
-    const user = auth.currentUser;
-    if (!user) {
-      alert("You must be signed in to upload.");
-      return;
-    }
-
-    const fileRef = ref(storage, `uploads/${user.uid}/${file.name}`);
-    await uploadBytes(fileRef, file);
-    alert("Upload complete!");
-  });
-
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      console.log("Signed in as", user.email);
-    } else {
-      console.log("Not signed in");
-    }
-  });
-</script>
 </body>
 </html>
