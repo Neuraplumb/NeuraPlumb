@@ -4,19 +4,20 @@
     <meta charset="UTF-8" />
     <title>NeuraPlumb Scoring Tool</title>
     <script type="module">
+      // Firebase SDKs
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
       import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
       import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
       import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-      // ✅ Final working config
+      // Firebase config (corrected)
       const firebaseConfig = {
         apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
-        authDomain: "neuraplumb-temp.firebaseapp.com",
-        projectId: "neuraplumb-temp",
+        authDomain: "neuraplumb.firebaseapp.com",
+        projectId: "neuraplumb",
         storageBucket: "neuraplumb-temp.firebasestorage.app",
-        messagingSenderId: "1054125523956",
-        appId: "1:1054125523956:web:e509376f1011371b64efa1"
+        messagingSenderId: "329025414261",
+        appId: "1:329025414261:web:547b1254f89215b82d443c"
       };
 
       const app = initializeApp(firebaseConfig);
@@ -26,28 +27,29 @@
 
       // Auto login
       signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!")
-        .then(() => console.log("✅ Signed in"))
+        .then(() => console.log("✅ Signed in to Firebase"))
         .catch((err) => alert("Login error: " + err.message));
 
+      // Global score handler
       window.getScore = async function () {
+        const photoInput = document.getElementById("photo");
         const job = document.getElementById("job").value;
         const scope = document.getElementById("scope").value;
-        const fileInput = document.getElementById("photo");
         const resultDiv = document.getElementById("result");
 
-        if (!job || !scope || fileInput.files.length === 0) {
+        if (!photoInput.files.length || !job || !scope) {
           resultDiv.innerText = "❗ Please complete all fields.";
           return;
         }
 
-        const photo = fileInput.files[0];
+        const photo = photoInput.files[0];
         const user = auth.currentUser;
         if (!user) {
-          alert("You must be signed in to upload.");
+          alert("Not signed in");
           return;
         }
 
-        // Upload
+        // Upload to Storage
         const fileRef = ref(storage, `uploads/${user.uid}/${photo.name}`);
         try {
           await uploadBytes(fileRef, photo);
@@ -63,25 +65,37 @@
           });
           console.log("📦 Logged to Firestore");
 
-          // Score placeholder
+          // Placeholder score message
           resultDiv.innerText = `⏳ Upload complete. Scoring in progress...`;
           setTimeout(() => {
             resultDiv.innerText = `✅ NeuraScore pending integration. Upload succeeded.`;
           }, 1500);
+
         } catch (e) {
           console.error("Upload failed", e);
-          resultDiv.innerText = "❌ Upload failed. Check console.";
+          resultDiv.innerText = "❌ Upload or logging failed.";
         }
       };
     </script>
 
     <style>
-      body { font-family: Arial; padding: 2rem; max-width: 600px; margin: auto; }
-      label, select, input, button { display: block; margin-top: 1rem; width: 100%; }
-      #result { margin-top: 2rem; font-weight: bold; }
+      body {
+        font-family: Arial;
+        padding: 2rem;
+        max-width: 600px;
+        margin: auto;
+      }
+      label, select, input, button {
+        display: block;
+        margin-top: 1rem;
+        width: 100%;
+      }
+      #result {
+        margin-top: 2rem;
+        font-weight: bold;
+      }
     </style>
   </head>
-
   <body>
     <h1>NeuraPlumb Scoring Tool</h1>
 
