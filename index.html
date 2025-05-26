@@ -8,25 +8,25 @@
       import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
       import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
-      // ✅ CORRECT Firebase config
+      // ✅ Corrected Firebase Config
       const firebaseConfig = {
-         apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
-  authDomain: "neuraplumb.firebaseapp.com",
-  projectId: "neuraplumb",
-  storageBucket: "neuraplumb-temp.firebasestorage.app", // ✅ Correct bucket
-  messagingSenderId: "329025414261",
-  appId: "1:329025414261:web:547b1254f89215b82d443c"
-};
+        apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
+        authDomain: "neuraplumb-temp.firebaseapp.com",
+        projectId: "neuraplumb-temp",
+        storageBucket: "neuraplumb-temp.firebasestorage.app",
+        messagingSenderId: "1054125523956",
+        appId: "1:1054125523956:web:e509376f1011371b64efa1"
+      };
+
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const storage = getStorage(app);
 
-      // ✅ Auto login
+      // ✅ Auto-login
       signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!")
         .then(() => console.log("✅ Signed in to Firebase"))
-        .catch(err => alert("Login failed: " + err.message));
+        .catch((err) => alert("Login error: " + err.message));
 
-      // ✅ Upload + NeuraScore
       window.getScore = async function () {
         const job = document.getElementById("job").value;
         const scope = document.getElementById("scope").value;
@@ -40,9 +40,8 @@
 
         const photo = fileInput.files[0];
         const user = auth.currentUser;
-
         if (!user) {
-          alert("❌ You must be signed in.");
+          alert("You must be signed in to upload.");
           return;
         }
 
@@ -53,34 +52,21 @@
 
           const mockScore = Math.floor(Math.random() * 5) + 1;
           resultDiv.innerText = `✅ Your NeuraScore: ${mockScore}/5 (mock)`;
-        } catch (error) {
-          console.error("❌ Upload failed", error);
-          resultDiv.innerText = "❌ Upload failed. See console for details.";
+        } catch (e) {
+          console.error("Upload failed", e);
+          resultDiv.innerText = "❌ Upload failed. Check console for details.";
         }
       };
     </script>
 
     <style>
-      body {
-        font-family: Arial;
-        padding: 2rem;
-        max-width: 600px;
-        margin: auto;
-      }
-      label, select, input, button {
-        display: block;
-        margin-top: 1rem;
-        width: 100%;
-      }
-      #result {
-        margin-top: 2rem;
-        font-weight: bold;
-      }
+      body { font-family: Arial; padding: 2rem; max-width: 600px; margin: auto; }
+      label, select, input, button { display: block; margin-top: 1rem; width: 100%; }
+      #result { margin-top: 2rem; font-weight: bold; }
     </style>
   </head>
   <body>
     <h1>NeuraPlumb Scoring Tool</h1>
-
     <label for="photo">Upload Photo:</label>
     <input type="file" id="photo" />
 
