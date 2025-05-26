@@ -10,14 +10,13 @@
 
       // ✅ CORRECT Firebase config
       const firebaseConfig = {
-        apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
-        authDomain: "neuraplumb.firebaseapp.com",
-        projectId: "neuraplumb",
-        storageBucket: "neuraplumb-temp.appspot.com", // ✅ This is the real one
-        messagingSenderId: "329025414261",
-        appId: "1:329025414261:web:547b1254f89215b82d443c"
-      };
-
+         apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
+  authDomain: "neuraplumb.firebaseapp.com",
+  projectId: "neuraplumb",
+  storageBucket: "neuraplumb-temp.firebasestorage.app", // ✅ Correct bucket
+  messagingSenderId: "329025414261",
+  appId: "1:329025414261:web:547b1254f89215b82d443c"
+};
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const storage = getStorage(app);
