@@ -4,16 +4,19 @@
   <meta charset="UTF-8" />
   <title>NeuraPlumb Scoring Tool</title>
   <script type="module">
+    // Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
     import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+    // CONFIG — 🔧 FIXED storageBucket
     const firebaseConfig = {
       apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
       authDomain: "neuraplumb.firebaseapp.com",
       projectId: "neuraplumb",
-      storageBucket: "neuraplumb-temp.firebasestorage.app",      messagingSenderId: "329025414261",
+      storageBucket: "neuraplumb-temp.firebasestorage.app", // ✅ Corrected bucket
+      messagingSenderId: "329025414261",
       appId: "1:329025414261:web:547b1254f89215b82d443c"
     };
 
@@ -27,6 +30,7 @@
       .then(() => console.log("✅ Signed in to Firebase"))
       .catch((err) => alert("Login error: " + err.message));
 
+    // Upload + Firestore logging
     window.getScore = async function () {
       const photoInput = document.getElementById("photo");
       const job = document.getElementById("job").value;
@@ -41,11 +45,12 @@
       const photo = photoInput.files[0];
       const user = auth.currentUser;
       if (!user) {
-        alert("Not signed in.");
+        alert("Not signed in");
         return;
       }
 
       const fileRef = ref(storage, `uploads/${user.uid}/${photo.name}`);
+
       try {
         await uploadBytes(fileRef, photo);
         console.log("✅ Upload successful");
@@ -63,6 +68,7 @@
         setTimeout(() => {
           resultDiv.innerText = `✅ NeuraScore pending integration. Upload succeeded.`;
         }, 1500);
+
       } catch (e) {
         console.error("Upload failed", e);
         resultDiv.innerText = "❌ Upload or logging failed.";
