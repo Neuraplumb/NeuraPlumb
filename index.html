@@ -69,6 +69,7 @@
         }
       };
     </script>
+
     <style>
       body {
         font-family: Arial;
@@ -89,3 +90,28 @@
   </head>
   <body>
     <h1>NeuraPlumb Scoring Tool</h1>
+
+    <label for="photo">Upload Photo:</label>
+    <input type="file" id="photo" />
+
+    <label for="job">Job Type:</label>
+    <select id="job">
+      <option value="">Select Job Type</option>
+      <option value="water_heater">Water Heater</option>
+      <option value="sewer">Sewer</option>
+      <option value="repipe">Copper Repipe</option>
+      <option value="drain">Drain Repair</option>
+    </select>
+
+    <label for="scope">Scope of Work:</label>
+    <select id="scope">
+      <option value="">Select Scope</option>
+      <option value="full_install">Full Install</option>
+      <option value="repair_only">Repair Only</option>
+      <option value="replacement">Replacement</option>
+    </select>
+
+    <button onclick="getScore()">Get NeuraScore</button>
+    <div id="result"></div>
+  </body>
+</html>
