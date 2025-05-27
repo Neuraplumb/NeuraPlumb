@@ -1,117 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>NeuraPlumb Scoring Tool</title>
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-      import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-      import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-      import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<head>
+  <meta charset="UTF-8" />
+  <title>NeuraPlumb Scoring Tool</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
-        authDomain: "neuraplumb-temp.firebaseapp.com",
-        projectId: "neuraplumb-temp",
-        storageBucket: "neuraplumb-temp.firebasestorage.app",
-        messagingSenderId: "329025414261",
-        appId: "1:329025414261:web:547b1254f89215b82d443c"
-      };
+    const firebaseConfig = {
+      apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
+      authDomain: "neuraplumb-temp.firebaseapp.com",
+      projectId: "neuraplumb-temp",
+      storageBucket: "neuraplumb-temp.firebasestorage.app",
+      messagingSenderId: "329025414261",
+      appId: "1:329025414261:web:547b1254f89215b82d443c"
+    };
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const storage = getStorage(app);
-      const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+    const db = getFirestore(app);
 
-      signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!")
-        .then(() => console.log("✅ Signed in to Firebase"))
-        .catch((err) => alert("Login error: " + err.message));
+    signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!")
+      .then(() => console.log("✅ Signed in to Firebase"))
+      .catch((err) => alert("Login error: " + err.message));
 
-      window.getScore = async function () {
-        const photoInput = document.getElementById("photo");
-        const job = document.getElementById("job").value;
-        const scope = document.getElementById("scope").value;
-        const resultDiv = document.getElementById("result");
+    const photoInput = document.getElementById("photo");
+    const previewImage = document.getElementById("preview");
 
-        if (!photoInput.files.length || !job || !scope) {
-          resultDiv.innerText = "❗ Please complete all fields.";
-          return;
-        }
-
-        const photo = photoInput.files[0];
-        const user = auth.currentUser;
-        if (!user) {
-          alert("Not signed in");
-          return;
-        }
-
-        const fileRef = ref(storage, `uploads/${user.uid}/${photo.name}`);
-        try {
-          await uploadBytes(fileRef, photo);
-          console.log("✅ Upload successful");
-
-          await addDoc(collection(db, "uploads"), {
-            uid: user.uid,
-            fileName: photo.name,
-            jobType: job,
-            scope: scope,
-            timestamp: serverTimestamp()
-          });
-          console.log("📦 Logged to Firestore");
-
-          resultDiv.innerText = `⏳ Upload complete. Scoring in progress...`;
-          setTimeout(() => {
-            resultDiv.innerText = `✅ NeuraScore pending integration. Upload succeeded.`;
-          }, 1500);
-        } catch (e) {
-          console.error("Upload failed", e);
-          resultDiv.innerText = "❌ Upload or logging failed.";
-        }
-      };
-    </script>
-
-    <style>
-      body {
-        font-family: Arial;
-        padding: 2rem;
-        max-width: 600px;
-        margin: auto;
+    // 🔍 Image Preview
+    photoInput?.addEventListener("change", function () {
+      const file = this.files[0];
+      if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          previewImage.src = e.target.result;
+          previewImage.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      } else {
+        previewImage.style.display = "none";
+        previewImage.src = "";
       }
-      label, select, input, button {
-        display: block;
-        margin-top: 1rem;
-        width: 100%;
+    });
+
+    window.getScore = async function () {
+      const job = document.getElementById("job").value;
+      const scope = document.getElementById("scope").value;
+      const resultDiv = document.getElementById("result");
+      const scoreBox = document.getElementById("scoreBox");
+
+      if (!photoInput.files.length || !job || !scope) {
+        resultDiv.innerText = "❗ Please complete all fields.";
+        return;
       }
-      #result {
-        margin-top: 2rem;
-        font-weight: bold;
+
+      const photo = photoInput.files[0];
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Not signed in");
+        return;
       }
-    </style>
-  </head>
-  <body>
-    <h1>NeuraPlumb Scoring Tool</h1>
 
-    <label for="photo">Upload Photo:</label>
-    <input type="file" id="photo" />
+      const fileRef = ref(storage, `uploads/${user.uid}/${photo.name}`);
+      try {
+        await uploadBytes(fileRef, photo);
+        console.log("✅ Upload successful");
 
-    <label for="job">Job Type:</label>
-    <select id="job">
-      <option value="">Select Job Type</option>
-      <option value="water_heater">Water Heater</option>
-      <option value="sewer">Sewer</option>
-      <option value="repipe">Copper Repipe</option>
-      <option value="drain">Drain Repair</option>
-    </select>
+        await addDoc(collection(db, "uploads"), {
+          uid: user.uid,
+          fileName: photo.name,
+          jobType: job,
+          scope: scope,
+          timestamp: serverTimestamp()
+        });
+        console.log("📦 Logged to Firestore");
 
-    <label for="scope">Scope of Work:</label>
-    <select id="scope">
-      <option value="">Select Scope</option>
-      <option value="full_install">Full Install</option>
-      <option value="repair_only">Repair Only</option>
-      <option value="replacement">Replacement</option>
-    </select>
+        resultDiv.innerText = `⏳ Upload complete. Scoring in progress...`;
 
-    <button onclick="getScore()">Get NeuraScore</button>
-    <div id="result"></div>
-  </body>
+        setTimeout(() => {
+          const score = Math.floor(Math.random() * 5) + 1;
+
+          const messages = {
+            1: "⚠️ Issues detected. Review recommended.",
+            2: "Basic install with minor concerns.",
+            3: "Standard install. Acceptable performance.",
+            4: "✅ Clean and professional workmanship.",
+            5: "🏆 Elite quality. Great job!"
+          };
+
+          scoreBox.className = "";
+          scoreBox.classList.add(`score-${score}`);
+          scoreBox.innerText = `NeuraScore: ${score} – ${messages[score]}`;
+          scoreBox.style.display = "block";
+
+          resultDiv.innerText = `✅ Upload succeeded.`;
+        }, 1500);
+      } catch (e) {
+        console.error("Upload failed", e);
+        resultDiv.innerText = "❌ Upload or logging failed.";
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: Arial;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    label, select, input, button {
+      display: block;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    #result {
+      margin-top: 2rem;
+      font-weight: bold;
+    }
+    #preview {
+      display: none;
+      margin-top: 1rem;
+      max-width: 100%;
+      border-radius: 8px;
+    }
+    #scoreBox {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+      color: white;
+      display: none;
+    }
+    .score-1 { background-color: #d9534f; }
+    .score-2 { background-color: #f0ad4e; }
+    .score-3 { background-color: #ffd633; color: #333; }
+    .score-4 { background-color: #5bc0de; }
+    .score-5 { background-color: #5cb85c; }
+  </style>
+</head>
+<body>
+  <h1>NeuraPlumb Scoring Tool</h1>
+
+  <label for="photo">Upload Photo:</label>
+  <input type="file" id="photo" accept="image/jpeg,image/png" />
+  <img id="preview" src="" alt="Image Preview" />
+
+  <label for="job">Job Type:</label>
+  <select id="job">
+    <option value="">Select Job Type</option>
+    <option value="water_heater">Water Heater</option>
+    <option value="sewer">Sewer</option>
+    <option value="repipe">Copper Repipe</option>
+    <option value="drain">Drain Repair</option>
+  </select>
+
+  <label for="scope">Scope of Work:</label>
+  <select id="scope">
+    <option value="">Select Scope</option>
+    <option value="full_install">Full Install</option>
+    <option value="repair_only">Repair Only</option>
+    <option value="replacement">Replacement</option>
+  </select>
+
+  <button onclick="getScore()">Get NeuraScore</button>
+
+  <div id="result"></div>
+  <div id="scoreBox"></div>
+</body>
 </html>
