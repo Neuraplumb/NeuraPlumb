@@ -1,231 +1,36 @@
+<!-- ✅ SAFE STATE – MAY 26, 2025 -->
+<!-- NeuraPlumb Scoring Tool (Working Upload, Firebase Logging, Basic Scoring) -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NeuraPlumb Scoring Tool</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
-      authDomain: "neuraplumb-temp.firebaseapp.com",
-      projectId: "neuraplumb-temp",
-      storageBucket: "neuraplumb-temp.firebasestorage.app",
-      messagingSenderId: "329025414261",
-      appId: "1:329025414261:web:547b1254f89215b82d443c"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const storage = getStorage(app);
-    const db = getFirestore(app);
-
-    signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!")
-      .then(() => {
-        console.log("✅ Signed in to Firebase");
-        loadUploadHistory();
-      })
-      .catch((err) => alert("Login error: " + err.message));
-
-    const photoInput = document.getElementById("photo");
-    const previewImage = document.getElementById("preview");
-
-    photoInput?.addEventListener("change", function () {
-      const file = this.files[0];
-      if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          previewImage.src = e.target.result;
-          previewImage.style.display = "block";
-        };
-        reader.readAsDataURL(file);
-      } else {
-        previewImage.style.display = "none";
-        previewImage.src = "";
-      }
-    });
-
-    window.getScore = async function () {
-      const job = document.getElementById("job").value;
-      const scope = document.getElementById("scope").value;
-      const resultDiv = document.getElementById("result");
-      const scoreBox = document.getElementById("scoreBox");
-
-      if (!photoInput.files.length || !job || !scope) {
-        resultDiv.innerText = "❗ Please complete all fields.";
-        return;
-      }
-
-      const photo = photoInput.files[0];
-      const user = auth.currentUser;
-      if (!user) {
-        alert("Not signed in");
-        return;
-      }
-
-      const fileRef = ref(storage, `uploads/${user.uid}/${photo.name}`);
-      try {
-        await uploadBytes(fileRef, photo);
-        const url = await getDownloadURL(fileRef);
-        console.log("✅ Upload successful");
-
-        await addDoc(collection(db, "uploads"), {
-          uid: user.uid,
-          fileName: photo.name,
-          jobType: job,
-          scope: scope,
-          imageUrl: url,
-          timestamp: serverTimestamp()
-        });
-        console.log("📦 Logged to Firestore");
-
-        resultDiv.innerText = `⏳ Upload complete. Scoring in progress...`;
-
-        setTimeout(() => {
-          const score = Math.floor(Math.random() * 5) + 1;
-
-          const messages = {
-            1: "⚠️ Issues detected. Review recommended.",
-            2: "Basic install with minor concerns.",
-            3: "Standard install. Acceptable performance.",
-            4: "✅ Clean and professional workmanship.",
-            5: "🏆 Elite quality. Great job!"
-          };
-
-          scoreBox.className = "";
-          scoreBox.classList.add(`score-${score}`);
-          scoreBox.innerText = `NeuraScore: ${score} – ${messages[score]}`;
-          scoreBox.style.display = "block";
-
-          resultDiv.innerText = `✅ Upload succeeded.`;
-
-          loadUploadHistory();
-        }, 1500);
-      } catch (e) {
-        console.error("Upload failed", e);
-        resultDiv.innerText = "❌ Upload or logging failed.";
-      }
-    };
-
-    async function loadUploadHistory() {
-      const historyDiv = document.getElementById("history");
-      const user = auth.currentUser;
-      if (!user) return;
-
-      historyDiv.innerHTML = "<p>Loading history...</p>";
-
-      const q = query(
-        collection(db, "uploads"),
-        where("uid", "==", user.uid),
-        orderBy("timestamp", "desc"),
-        limit(5)
-      );
-
-      try {
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-          historyDiv.innerHTML = "<p>No uploads yet.</p>";
-          return;
-        }
-
-        const entries = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          const score = Math.floor(Math.random() * 5) + 1;
-          const scoreClass = `score-${score}`;
-          const messages = {
-            1: "⚠️",
-            2: "🟠",
-            3: "🟡",
-            4: "🔵",
-            5: "🟢"
-          };
-
-          entries.push(`
-            <div class="history-entry ${scoreClass}">
-              <img src="${data.imageUrl}" />
-              <div>
-                <strong>${data.jobType}</strong> – ${data.scope}<br/>
-                <small>${new Date(data.timestamp?.seconds * 1000).toLocaleString()}</small><br/>
-                <span class="badge">${messages[score]} NeuraScore: ${score}</span>
-              </div>
-            </div>
-          `);
-        });
-
-        historyDiv.innerHTML = `<h3>Your Recent Uploads</h3>${entries.join("")}`;
-      } catch (err) {
-        console.error("Error loading history", err);
-        historyDiv.innerHTML = "<p>Error loading history.</p>";
-      }
-    }
-  </script>
-
   <style>
     body {
-      font-family: Arial;
-      padding: 2rem;
-      max-width: 600px;
-      margin: auto;
+      font-family: Arial, sans-serif;
+      padding: 20px;
     }
-    label, select, input, button {
-      display: block;
-      margin-top: 1rem;
-      width: 100%;
-    }
-    #result {
-      margin-top: 2rem;
-      font-weight: bold;
-    }
-    #preview {
+    img#preview {
       display: none;
-      margin-top: 1rem;
-      max-width: 100%;
-      border-radius: 8px;
+      margin-bottom: 10px;
+      width: 300px;
+      height: auto;
+      border-radius: 10px;
     }
-    #scoreBox {
-      margin-top: 1.5rem;
-      padding: 1rem;
+    .score-box {
+      margin-top: 20px;
+      padding: 15px;
       border-radius: 8px;
       font-weight: bold;
       text-align: center;
-      color: white;
-      display: none;
     }
-    .score-1 { background-color: #d9534f; }
-    .score-2 { background-color: #f0ad4e; }
-    .score-3 { background-color: #ffd633; color: #333; }
-    .score-4 { background-color: #5bc0de; }
-    .score-5 { background-color: #5cb85c; }
-    #history {
-      margin-top: 3rem;
-    }
-    .history-entry {
-      background: #f9f9f9;
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-    }
-    .history-entry img {
-      width: 80px;
-      height: 80px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    .badge {
-      font-weight: bold;
-      padding: 0.3rem 0.5rem;
-      border-radius: 5px;
-      display: inline-block;
-      margin-top: 0.3rem;
-    }
+    .score-1 { background-color: #f44336; color: white; }
+    .score-2 { background-color: #ff9800; color: white; }
+    .score-3 { background-color: #ffeb3b; color: black; }
+    .score-4 { background-color: #2196f3; color: white; }
+    .score-5 { background-color: #4caf50; color: white; }
   </style>
 </head>
 <body>
@@ -233,7 +38,9 @@
 
   <label for="photo">Upload Photo:</label>
   <input type="file" id="photo" accept="image/jpeg,image/png" />
-  <img id="preview" src="" alt="Image Preview" />
+  <br /><br />
+
+  <img id="preview" alt="Preview" />
 
   <label for="job">Job Type:</label>
   <select id="job">
@@ -243,19 +50,94 @@
     <option value="repipe">Copper Repipe</option>
     <option value="drain">Drain Repair</option>
   </select>
+  <br /><br />
 
   <label for="scope">Scope of Work:</label>
   <select id="scope">
     <option value="">Select Scope</option>
     <option value="full_install">Full Install</option>
-    <option value="repair_only">Repair Only</option>
     <option value="replacement">Replacement</option>
+    <option value="repair_only">Repair Only</option>
   </select>
+  <br /><br />
 
-  <button onclick="getScore()">Get NeuraScore</button>
+  <button onclick="handleUpload()">Get NeuraScore</button>
+  <div id="result" class="score-box"></div>
 
-  <div id="result"></div>
-  <div id="scoreBox"></div>
-  <div id="history"></div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
+      authDomain: "neuraplumb-temp.firebaseapp.com",
+      projectId: "neuraplumb-temp",
+      storageBucket: "neuraplumb-temp.appspot.com",
+      messagingSenderId: "329025414261",
+      appId: "1:329025414261:web:547b1254f89215b82d443c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+    const db = getFirestore(app);
+
+    const photoInput = document.getElementById("photo");
+    const preview = document.getElementById("preview");
+    const result = document.getElementById("result");
+
+    signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara57202")
+      .then(() => console.log("✅ Signed in to Firebase"))
+      .catch(err => alert("Login error: " + err.message));
+
+    photoInput.addEventListener("change", () => {
+      const file = photoInput.files[0];
+      if (file && file.type.startsWith("image/")) {
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = "block";
+      }
+    });
+
+    window.handleUpload = async () => {
+      const file = photoInput.files[0];
+      const job = document.getElementById("job").value;
+      const scope = document.getElementById("scope").value;
+
+      if (!file || !job || !scope) {
+        alert("Please select a photo, job type, and scope.");
+        return;
+      }
+
+      const user = auth.currentUser;
+      const storageRef = ref(storage, `uploads/${file.name}`);
+      await uploadBytes(storageRef, file);
+      console.log("✅ Upload successful");
+
+      const imageUrl = await getDownloadURL(storageRef);
+      await addDoc(collection(db, "uploads"), {
+        uid: user.uid,
+        fileName: file.name,
+        jobType: job,
+        scope: scope,
+        imageUrl,
+        timestamp: serverTimestamp()
+      });
+      console.log("📦 Logged to Firestore");
+
+      const mockScore = Math.floor(Math.random() * 5) + 1;
+      const messages = [
+        "1 – ⚠️ Issues detected. Review recommended.",
+        "2 – Basic install with minor concerns.",
+        "3 – Standard install. Acceptable performance.",
+        "4 – ✅ Clean and professional workmanship.",
+        "5 – 🌟 Elite work. NeuraPlumb verified."
+      ];
+      const classes = ["score-1", "score-2", "score-3", "score-4", "score-5"];
+      result.className = `score-box ${classes[mockScore - 1]}`;
+      result.textContent = `NeuraScore: ${messages[mockScore - 1]}`;
+    };
+  </script>
 </body>
 </html>
