@@ -1,9 +1,8 @@
-<!-- ✅ NEURAPLUMB TOOL v2 – HISTORY + UPLOADS FIXED -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NeuraPlumb Scoring Tool</title>
   <style>
     body {
@@ -62,9 +61,6 @@
   <button onclick="handleUpload()">Get NeuraScore</button>
   <div id="result" class="score-box"></div>
 
-  <h2>Your Recent Uploads</h2>
-  <div id="history"></div>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -88,7 +84,6 @@
     const photoInput = document.getElementById("photo");
     const preview = document.getElementById("preview");
     const result = document.getElementById("result");
-    const history = document.getElementById("history");
 
     signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!")
       .then(() => console.log("✅ Signed in to Firebase"))
@@ -100,34 +95,6 @@
         preview.src = URL.createObjectURL(file);
         preview.style.display = "block";
       }
-    });
-
-    async function loadHistory() {
-      const user = auth.currentUser;
-      const q = query(
-        collection(db, "uploads"),
-        where("uid", "==", user.uid),
-        orderBy("timestamp", "desc"),
-        limit(5)
-      );
-
-      const snapshot = await getDocs(q);
-      history.innerHTML = "";
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const card = document.createElement("div");
-        card.style.marginTop = "10px";
-        card.innerHTML = `
-          <img src="${data.imageUrl}" width="150" style="border-radius: 8px" />
-          <div><strong>${data.jobType}</strong> – ${data.scope}</div>
-          <div style="font-size: 12px; color: gray">${new Date(data.timestamp?.toDate()).toLocaleString()}</div>
-        `;
-        history.appendChild(card);
-      });
-    }
-
-    onAuthStateChanged(auth, user => {
-      if (user) loadHistory();
     });
 
     window.handleUpload = async () => {
@@ -155,7 +122,6 @@
         timestamp: serverTimestamp()
       });
       console.log("📦 Logged to Firestore");
-      loadHistory();
 
       const mockScore = Math.floor(Math.random() * 5) + 1;
       const messages = [
@@ -168,7 +134,43 @@
       const classes = ["score-1", "score-2", "score-3", "score-4", "score-5"];
       result.className = `score-box ${classes[mockScore - 1]}`;
       result.textContent = `NeuraScore: ${messages[mockScore - 1]}`;
+
+      loadRecentUploads(); // refresh history
     };
+
+    async function loadRecentUploads() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const q = query(
+        collection(db, "uploads"),
+        where("uid", "==", user.uid),
+        orderBy("timestamp", "desc"),
+        limit(5)
+      );
+
+      const querySnapshot = await getDocs(q);
+      const container = document.createElement("div");
+      container.innerHTML = "<h3>Your Recent Uploads</h3>";
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.innerHTML = `
+          <p><strong>${data.jobType}</strong> – ${data.scope}</p>
+          <img src="${data.imageUrl}" width="150" style="border-radius: 6px;" />
+          <hr />
+        `;
+        container.appendChild(div);
+      });
+
+      document.body.appendChild(container);
+    }
+
+    window.addEventListener("load", () => {
+      onAuthStateChanged(auth, (user) => {
+        if (user) loadRecentUploads();
+      });
+    });
   </script>
 </body>
 </html>
