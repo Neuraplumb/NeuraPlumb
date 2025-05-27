@@ -113,14 +113,14 @@
       console.log("✅ Upload successful");
 
       const imageUrl = await getDownloadURL(storageRef);
-      await addDoc(collection(db, "uploads"), {
-        uid: user.uid,
-        fileName: file.name,
-        jobType: job,
-        scope: scope,
-        imageUrl,
-        timestamp: serverTimestamp()
-      });
+    await addDoc(collection(db, "uploads"), {
+      uid: user.uid,
+      fileName: file.name,
+      jobType: job,
+      scope: scope,
+      imageUrl, // ✅ use the result from getDownloadURL() — not a manual string
+      timestamp: serverTimestamp()
+    });      
       console.log("📦 Logged to Firestore");
 
       const mockScore = Math.floor(Math.random() * 5) + 1;
