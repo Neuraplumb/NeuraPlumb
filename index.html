@@ -6,8 +6,8 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
@@ -24,13 +24,15 @@
     const db = getFirestore(app);
 
     signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!")
-      .then(() => console.log("✅ Signed in to Firebase"))
+      .then(() => {
+        console.log("✅ Signed in to Firebase");
+        loadUploadHistory();
+      })
       .catch((err) => alert("Login error: " + err.message));
 
     const photoInput = document.getElementById("photo");
     const previewImage = document.getElementById("preview");
 
-    // 🔍 Image Preview
     photoInput?.addEventListener("change", function () {
       const file = this.files[0];
       if (file && (file.type === "image/jpeg" || file.type === "image/png")) {
@@ -67,6 +69,7 @@
       const fileRef = ref(storage, `uploads/${user.uid}/${photo.name}`);
       try {
         await uploadBytes(fileRef, photo);
+        const url = await getDownloadURL(fileRef);
         console.log("✅ Upload successful");
 
         await addDoc(collection(db, "uploads"), {
@@ -74,6 +77,7 @@
           fileName: photo.name,
           jobType: job,
           scope: scope,
+          imageUrl: url,
           timestamp: serverTimestamp()
         });
         console.log("📦 Logged to Firestore");
@@ -97,12 +101,67 @@
           scoreBox.style.display = "block";
 
           resultDiv.innerText = `✅ Upload succeeded.`;
+
+          loadUploadHistory();
         }, 1500);
       } catch (e) {
         console.error("Upload failed", e);
         resultDiv.innerText = "❌ Upload or logging failed.";
       }
     };
+
+    async function loadUploadHistory() {
+      const historyDiv = document.getElementById("history");
+      const user = auth.currentUser;
+      if (!user) return;
+
+      historyDiv.innerHTML = "<p>Loading history...</p>";
+
+      const q = query(
+        collection(db, "uploads"),
+        where("uid", "==", user.uid),
+        orderBy("timestamp", "desc"),
+        limit(5)
+      );
+
+      try {
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+          historyDiv.innerHTML = "<p>No uploads yet.</p>";
+          return;
+        }
+
+        const entries = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const score = Math.floor(Math.random() * 5) + 1;
+          const scoreClass = `score-${score}`;
+          const messages = {
+            1: "⚠️",
+            2: "🟠",
+            3: "🟡",
+            4: "🔵",
+            5: "🟢"
+          };
+
+          entries.push(`
+            <div class="history-entry ${scoreClass}">
+              <img src="${data.imageUrl}" />
+              <div>
+                <strong>${data.jobType}</strong> – ${data.scope}<br/>
+                <small>${new Date(data.timestamp?.seconds * 1000).toLocaleString()}</small><br/>
+                <span class="badge">${messages[score]} NeuraScore: ${score}</span>
+              </div>
+            </div>
+          `);
+        });
+
+        historyDiv.innerHTML = `<h3>Your Recent Uploads</h3>${entries.join("")}`;
+      } catch (err) {
+        console.error("Error loading history", err);
+        historyDiv.innerHTML = "<p>Error loading history.</p>";
+      }
+    }
   </script>
 
   <style>
@@ -141,6 +200,32 @@
     .score-3 { background-color: #ffd633; color: #333; }
     .score-4 { background-color: #5bc0de; }
     .score-5 { background-color: #5cb85c; }
+    #history {
+      margin-top: 3rem;
+    }
+    .history-entry {
+      background: #f9f9f9;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .history-entry img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .badge {
+      font-weight: bold;
+      padding: 0.3rem 0.5rem;
+      border-radius: 5px;
+      display: inline-block;
+      margin-top: 0.3rem;
+    }
   </style>
 </head>
 <body>
@@ -171,5 +256,6 @@
 
   <div id="result"></div>
   <div id="scoreBox"></div>
+  <div id="history"></div>
 </body>
 </html>
