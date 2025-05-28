@@ -1,19 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NeuraPlumb Test Upload</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Diagnostic Tool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    #log {
+      margin-top: 20px;
+      white-space: pre-line;
+      background: #f4f4f4;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    input[type="file"] {
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 15px;
+    }
+  </style>
 </head>
 <body>
-  <h1>NeuraPlumb Upload Debug</h1>
-  <input type="file" id="fileInput" accept="image/*" />
-  <button onclick="uploadImage()">Upload to Firebase</button>
-  <p id="status"></p>
+  <h1>🔥 Firebase Upload Debug</h1>
+  <input type="file" id="fileInput" accept="image/*">
+  <button onclick="runUpload()">Upload Now</button>
+  <div id="log">Waiting...</div>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getStorage, ref, uploadBytes, getDownloadURL, listAll } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+    import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
@@ -25,40 +47,71 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
     const storage = getStorage(app);
 
-    window.uploadImage = async () => {
-      const file = document.getElementById("fileInput").files[0];
-      const status = document.getElementById("status");
+    const log = (msg) => {
+      const box = document.getElementById('log');
+      box.textContent += `\n${msg}`;
+      console.log(msg);
+    };
+
+    async function runUpload() {
+      log("🟡 Upload button clicked");
+      const file = document.getElementById('fileInput').files[0];
       if (!file) {
-        status.textContent = "❗ Please select a file.";
-        return;
+        log("❌ No file selected");
+        return alert("Select a file first");
+      }
+
+      document.getElementById('log').textContent = "--- Uploading ---";
+      log(`📂 File selected: ${file.name} (${file.size} bytes)`);
+
+      try {
+        await signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!");
+        log("✅ Firebase Authenticated");
+      } catch (err) {
+        alert("Auth error");
+        return log("❌ Auth error: " + err.message);
       }
 
       const storageRef = ref(storage, `uploads/${file.name}`);
       try {
-        console.log("📂 Uploading:", file.name);
         await uploadBytes(storageRef, file);
-        console.log("✅ Upload successful");
-
-        const listRef = ref(storage, 'uploads');
-        const listed = await listAll(listRef);
-        const names = listed.items.map(item => item.name);
-        console.log("🗂 Storage contains:", names);
-
-        if (!names.includes(file.name)) {
-          status.textContent = "❌ File not found in uploads/ folder after upload."
-          return;
-        }
-
-        const url = await getDownloadURL(storageRef);
-        status.innerHTML = `✅ File uploaded. <a href="${url}" target="_blank">View File</a>`;
-        console.log("🔗 URL:", url);
-      } catch (e) {
-        console.error("❌ Upload failed:", e);
-        status.textContent = "❌ Upload error: " + e.message;
+        log("✅ File uploaded to Storage");
+      } catch (err) {
+        alert("Upload error");
+        return log("❌ Upload failed: " + err.message);
       }
+
+      let imageUrl = '';
+      try {
+        imageUrl = await getDownloadURL(storageRef);
+        log("🔗 getDownloadURL returned:");
+        log(imageUrl);
+      } catch (err) {
+        alert("URL error");
+        return log("❌ getDownloadURL failed: " + err.message);
+      }
+
+      try {
+        await addDoc(collection(db, "uploads"), {
+          fileName: file.name,
+          imageUrl,
+          timestamp: serverTimestamp()
+        });
+        log("📦 Firestore document created");
+      } catch (err) {
+        alert("Firestore error");
+        return log("❌ Firestore write failed: " + err.message);
+      }
+
+      log("✅✅✅ Upload Flow Complete ✅✅✅");
+      alert("Upload complete");
     }
+
+    window.runUpload = runUpload;
   </script>
 </body>
 </html>
