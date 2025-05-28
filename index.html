@@ -63,9 +63,9 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-    import { getFirestore, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
@@ -110,38 +110,40 @@
       const user = auth.currentUser;
       const storageRef = ref(storage, `uploads/${file.name}`);
 
-      console.log("📂 Uploading file:", file.name, file.size, file.type);
-
       try {
+        console.log("📂 Uploading:", file.name, file.size, file.type);
         await uploadBytes(storageRef, file);
         console.log("✅ Upload successful");
+
+        const imageUrl = await getDownloadURL(storageRef);
+        console.log("🔗 Download URL:", imageUrl);
+
+        await addDoc(collection(db, "uploads"), {
+          uid: user.uid,
+          fileName: file.name,
+          jobType: job,
+          scope: scope,
+          imageUrl,
+          timestamp: serverTimestamp()
+        });
+        console.log("📦 Logged to Firestore");
+
+        const mockScore = Math.floor(Math.random() * 5) + 1;
+        const messages = [
+          "1 – ⚠️ Issues detected. Review recommended.",
+          "2 – Basic install with minor concerns.",
+          "3 – Standard install. Acceptable performance.",
+          "4 – ✅ Clean and professional workmanship.",
+          "5 – 🌟 Elite work. NeuraPlumb verified."
+        ];
+        const classes = ["score-1", "score-2", "score-3", "score-4", "score-5"];
+        result.className = `score-box ${classes[mockScore - 1]}`;
+        result.textContent = `NeuraScore: ${messages[mockScore - 1]}`;
+
       } catch (err) {
-        console.error("❌ Upload FAILED:", err.message);
-        return;
+        console.error("❌ Upload failed:", err.message);
+        alert("Upload or file access failed: " + err.message);
       }
-
-      const imageUrl = await getDownloadURL(storageRef);
-      await addDoc(collection(db, "uploads"), {
-        uid: user.uid,
-        fileName: file.name,
-        jobType: job,
-        scope: scope,
-        imageUrl,
-        timestamp: serverTimestamp()
-      });
-      console.log("📦 Logged to Firestore");
-
-      const mockScore = Math.floor(Math.random() * 5) + 1;
-      const messages = [
-        "1 – ⚠️ Issues detected. Review recommended.",
-        "2 – Basic install with minor concerns.",
-        "3 – Standard install. Acceptable performance.",
-        "4 – ✅ Clean and professional workmanship.",
-        "5 – 🌟 Elite work. NeuraPlumb verified."
-      ];
-      const classes = ["score-1", "score-2", "score-3", "score-4", "score-5"];
-      result.className = `score-box ${classes[mockScore - 1]}`;
-      result.textContent = `NeuraScore: ${messages[mockScore - 1]}`;
     };
   </script>
 </body>
