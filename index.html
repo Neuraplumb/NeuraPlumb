@@ -109,18 +109,26 @@
 
       const user = auth.currentUser;
       const storageRef = ref(storage, `uploads/${file.name}`);
-      await uploadBytes(storageRef, file);
-      console.log("✅ Upload successful");
+
+      console.log("📂 Uploading file:", file.name, file.size, file.type);
+
+      try {
+        await uploadBytes(storageRef, file);
+        console.log("✅ Upload successful");
+      } catch (err) {
+        console.error("❌ Upload FAILED:", err.message);
+        return;
+      }
 
       const imageUrl = await getDownloadURL(storageRef);
-    await addDoc(collection(db, "uploads"), {
-      uid: user.uid,
-      fileName: file.name,
-      jobType: job,
-      scope: scope,
-      imageUrl, // ✅ use the result from getDownloadURL() — not a manual string
-      timestamp: serverTimestamp()
-    });      
+      await addDoc(collection(db, "uploads"), {
+        uid: user.uid,
+        fileName: file.name,
+        jobType: job,
+        scope: scope,
+        imageUrl,
+        timestamp: serverTimestamp()
+      });
       console.log("📦 Logged to Firestore");
 
       const mockScore = Math.floor(Math.random() * 5) + 1;
@@ -134,43 +142,7 @@
       const classes = ["score-1", "score-2", "score-3", "score-4", "score-5"];
       result.className = `score-box ${classes[mockScore - 1]}`;
       result.textContent = `NeuraScore: ${messages[mockScore - 1]}`;
-
-      loadRecentUploads(); // refresh history
     };
-
-    async function loadRecentUploads() {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      const q = query(
-        collection(db, "uploads"),
-        where("uid", "==", user.uid),
-        orderBy("timestamp", "desc"),
-        limit(5)
-      );
-
-      const querySnapshot = await getDocs(q);
-      const container = document.createElement("div");
-      container.innerHTML = "<h3>Your Recent Uploads</h3>";
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const div = document.createElement("div");
-        div.innerHTML = `
-          <p><strong>${data.jobType}</strong> – ${data.scope}</p>
-          <img src="${data.imageUrl}" width="150" style="border-radius: 6px;" />
-          <hr />
-        `;
-        container.appendChild(div);
-      });
-
-      document.body.appendChild(container);
-    }
-
-    window.addEventListener("load", () => {
-      onAuthStateChanged(auth, (user) => {
-        if (user) loadRecentUploads();
-      });
-    });
   </script>
 </body>
 </html>
