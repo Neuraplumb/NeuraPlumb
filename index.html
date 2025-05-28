@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upload Diagnostic Tool</title>
+  <title>Fallback Upload Debug</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -26,14 +26,13 @@
   </style>
 </head>
 <body>
-  <h1>🔥 Firebase Upload Debug</h1>
+  <h1>🛠️ Fallback Upload to Firebase Function</h1>
   <input type="file" id="fileInput" accept="image/*">
-  <button onclick="runUpload()">Upload Now</button>
+  <button onclick="runFallbackUpload()">Upload via Function</button>
   <div id="log">Waiting...</div>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
     import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
     import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
@@ -47,9 +46,8 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app);
+    const auth = getAuth(app);
 
     const log = (msg) => {
       const box = document.getElementById('log');
@@ -57,7 +55,7 @@
       console.log(msg);
     };
 
-    async function runUpload() {
+    async function runFallbackUpload() {
       log("🟡 Upload button clicked");
       const file = document.getElementById('fileInput').files[0];
       if (!file) {
@@ -65,9 +63,7 @@
         return alert("Select a file first");
       }
 
-      document.getElementById('log').textContent = "--- Uploading ---";
       log(`📂 File selected: ${file.name} (${file.size} bytes)`);
-      log(`📎 file.type = ${file.type}`);
 
       try {
         await signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!");
@@ -77,46 +73,37 @@
         return log("❌ Auth error: " + err.message);
       }
 
-      const metadata = {
-        contentType: file.type || 'image/jpeg'
-      };
-
-      const storageRef = ref(storage, `uploads/${file.name}`);
-      try {
-        await uploadBytes(storageRef, file, metadata);
-        log("✅ File uploaded to Storage (with metadata)");
-      } catch (err) {
-        alert("Upload error");
-        return log("❌ Upload failed: " + err.message);
-      }
-
-      let imageUrl = '';
-      try {
-        imageUrl = await getDownloadURL(storageRef);
-        log("🔗 getDownloadURL returned:");
-        log(imageUrl);
-      } catch (err) {
-        alert("URL error");
-        return log("❌ getDownloadURL failed: " + err.message);
-      }
+      const formData = new FormData();
+      formData.append("file", file);
 
       try {
+        const response = await fetch("https://us-central1-neuraplumb-temp.cloudfunctions.net/uploadImage", {
+          method: "POST",
+          body: formData
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Upload failed');
+
+        log("✅ File uploaded via Cloud Function");
+        log("🔗 URL: " + result.imageUrl);
+
         await addDoc(collection(db, "uploads"), {
           fileName: file.name,
-          imageUrl,
+          imageUrl: result.imageUrl,
           timestamp: serverTimestamp()
         });
-        log("📦 Firestore document created");
-      } catch (err) {
-        alert("Firestore error");
-        return log("❌ Firestore write failed: " + err.message);
-      }
 
-      log("✅✅✅ Upload Flow Complete ✅✅✅");
-      alert("Upload complete");
+        log("📦 Firestore document created");
+        alert("✅ Upload complete");
+
+      } catch (err) {
+        alert("Function upload error");
+        log("❌ Upload via Function failed: " + err.message);
+      }
     }
 
-    window.runUpload = runUpload;
+    window.runFallbackUpload = runFallbackUpload;
   </script>
 </body>
 </html>
