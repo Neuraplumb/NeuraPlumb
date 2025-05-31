@@ -1,109 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fallback Upload Debug</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    #log {
-      margin-top: 20px;
-      white-space: pre-line;
-      background: #f4f4f4;
-      border: 1px solid #ccc;
-      padding: 10px;
-      border-radius: 6px;
-    }
-    input[type="file"] {
-      margin-bottom: 10px;
-    }
-    button {
-      padding: 10px 15px;
-    }
-  </style>
-</head>
-<body>
-  <h1>🛠️ Fallback Upload to Firebase Function</h1>
-  <input type="file" id="fileInput" accept="image/*">
-  <button onclick="runFallbackUpload()">Upload via Function</button>
-  <div id="log">Waiting...</div>
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+const cors = require("cors")({ origin: true });
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-    import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+admin.initializeApp();
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
-      authDomain: "neuraplumb-temp.firebaseapp.com",
-      projectId: "neuraplumb-temp",
-      storageBucket: "neuraplumb-temp.appspot.com",
-      messagingSenderId: "329025414261",
-      appId: "1:329025414261:web:547b1254f89215b82d443c"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-
-    const log = (msg) => {
-      const box = document.getElementById('log');
-      box.textContent += `\n${msg}`;
-      console.log(msg);
-    };
-
-    async function runFallbackUpload() {
-      log("🟡 Upload button clicked");
-      const file = document.getElementById('fileInput').files[0];
-      if (!file) {
-        log("❌ No file selected");
-        return alert("Select a file first");
-      }
-
-      log(`📂 File selected: ${file.name} (${file.size} bytes)`);
-
-      try {
-        await signInWithEmailAndPassword(auth, "jaymz6435@gmail.com", "Elara572025!");
-        log("✅ Firebase Authenticated");
-      } catch (err) {
-        alert("Auth error");
-        return log("❌ Auth error: " + err.message);
-      }
-
-      const formData = new FormData();
-      formData.append("file", file);
-
-      try {
-        const response = await fetch("https://uploadimage-lcabzlokaa-uc.a.run.app", {
-          method: "POST",
-          body: formData
-        });
-
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.error || 'Upload failed');
-
-        log("✅ File uploaded via Cloud Function");
-        log("🔗 URL: " + result.imageUrl);
-
-        await addDoc(collection(db, "uploads"), {
-          fileName: file.name,
-          imageUrl: result.imageUrl,
-          timestamp: serverTimestamp()
-        });
-
-        log("📦 Firestore document created");
-        alert("✅ Upload complete");
-
-      } catch (err) {
-        alert("Function upload error");
-        log("❌ Upload via Function failed: " + err.message);
-      }
+exports.uploadImage = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    if (req.method !== "POST") {
+      return res.status(405).send("Method Not Allowed");
     }
 
-    window.runFallbackUpload = runFallbackUpload;
-  </script>
-</body>
-</html>
+    try {
+      const { userId, fileName } = req.body;
+
+      // 🔁 FAKE SCORE: real logic will come later
+      const neuraScore = Math.floor(Math.random() * 3) + 3; // score = 3 to 5
+
+      // 🗂 Save to Firestore
+      const db = admin.firestore();
+      await db.collection("scores").add({
+        userId,
+        fileName,
+        score: neuraScore,
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      res.status(200).json({
+        message: "Scored successfully",
+        score: neuraScore,
+      });
+    } catch (err) {
+      console.error("Error scoring image:", err);
+      res.status(500).send("Failed to process scoring");
+    }
+  });
+});
