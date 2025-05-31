@@ -33,7 +33,6 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
     import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
     const firebaseConfig = {
@@ -46,7 +45,6 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
     const auth = getAuth(app);
 
     const log = (msg) => {
@@ -73,31 +71,22 @@
         return log("❌ Auth error: " + err.message);
       }
 
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("userId", auth.currentUser.uid);
+
       try {
         const response = await fetch("https://us-central1-neuraplumb-temp.cloudfunctions.net/uploadImage", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            userId: auth.currentUser.uid,
-            fileName: file.name
-          })
+          body: formData
         });
 
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'Upload failed');
 
-        log("✅ File submitted to NeuraScore function");
+        log("✅ Image uploaded");
         log("📈 Score returned: " + result.score);
-
-        await addDoc(collection(db, "uploads"), {
-          fileName: file.name,
-          score: result.score,
-          timestamp: serverTimestamp()
-        });
-
-        log("📦 Firestore document created");
+        log("🔗 Image URL: " + result.imageUrl);
         alert("✅ Upload + Scoring complete");
 
       } catch (err) {
