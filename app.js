@@ -56,6 +56,7 @@ export default function Home() {
       });
 
       console.log("✅ Redirecting with:", downloadURL);
+      console.log("📸 FINAL downloadURL before redirect:", downloadURL);
       window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
     } catch (err) {
       console.error("❌ Upload failed:", err);
