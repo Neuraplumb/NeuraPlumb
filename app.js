@@ -57,9 +57,12 @@ export default function Home() {
 
       console.log("📸 FINAL downloadURL before redirect:", downloadURL);
 
-    setTimeout(() => {
-      window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
-    }, 1500);
+// Give browser time to flush the console before redirecting
+setTimeout(() => {
+  alert("Redirecting to vault with score " + mockScore);
+  window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
+}, 2000);
+
     } catch (err) {
       console.error("❌ Upload failed:", err);
       alert("Upload failed. Check console.");
