@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -17,36 +18,47 @@ const storage = getStorage(app);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!file) return alert('Please upload a file first.');
+export default function Home() {
+  const [score, setScore] = useState(null);
+  const [jobType, setJobType] = useState('');
+  const [scope, setScope] = useState('');
+  const [file, setFile] = useState(null);
 
-  const mockScore = Math.floor(Math.random() * 5) + 1;
-  setScore(mockScore);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!file) return alert('Please upload a file first.');
 
-  const user = auth.currentUser;
-  if (!user) {
-    alert("You must be signed in to submit.");
-    return;
-  }
+    const mockScore = Math.floor(Math.random() * 5) + 1;
+    setScore(mockScore);
 
-  const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
-await uploadBytes(storageRef, file);
+    const user = auth.currentUser;
+    if (!user) {
+      alert("You must be signed in to submit.");
+      return;
+    }
 
-getDownloadURL(storageRef).then(async (downloadURL) => {
-  await addDoc(collection(db, "uploads"), {
-    userId: user.uid,
-    imageUrl: downloadURL,
-    score: mockScore,
-    jobType,
-    scope,
-    timestamp: serverTimestamp()
-  });
+    try {
+      const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
 
-  // ✅ Only redirect after everything is done
-  window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
-});
+      await addDoc(collection(db, "uploads"), {
+        userId: user.uid,
+        imageUrl: downloadURL,
+        score: mockScore,
+        jobType,
+        scope,
+        timestamp: serverTimestamp()
+      });
 
+      console.log("✅ Redirecting with:", downloadURL);
+      window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
+
+    } catch (err) {
+      console.error("❌ Upload failed:", err);
+      alert("Upload failed. Check console.");
+    }
+  };
 
   return (
     <div style={{ fontFamily: 'Arial', padding: '2rem', maxWidth: '600px', margin: 'auto' }}>
@@ -86,5 +98,4 @@ getDownloadURL(storageRef).then(async (downloadURL) => {
       )}
     </div>
   );
-
-
+}
