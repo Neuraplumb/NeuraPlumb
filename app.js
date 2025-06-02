@@ -57,11 +57,11 @@ export default function Home() {
 
       console.log("📸 FINAL downloadURL before redirect:", downloadURL);
 
-// Give browser time to flush the console before redirecting
 setTimeout(() => {
-  alert("Redirecting to vault with score " + mockScore);
+  alert( 'Redirecting to vault:\n${downloadURL} ');
   window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
 }, 2000);
+
 
     } catch (err) {
       console.error("❌ Upload failed:", err);
