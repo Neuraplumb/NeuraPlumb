@@ -55,9 +55,11 @@ export default function Home() {
         timestamp: serverTimestamp()
       });
 
-      console.log("✅ Redirecting with:", downloadURL);
       console.log("📸 FINAL downloadURL before redirect:", downloadURL);
+
+    setTimeout(() => {
       window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
+    }, 1500);
     } catch (err) {
       console.error("❌ Upload failed:", err);
       alert("Upload failed. Check console.");
