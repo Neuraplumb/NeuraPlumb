@@ -31,19 +31,22 @@ const handleSubmit = async (e) => {
   }
 
   const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
+await uploadBytes(storageRef, file);
+
+getDownloadURL(storageRef).then(async (downloadURL) => {
   await addDoc(collection(db, "uploads"), {
-  userId: user.uid,
-  imageUrl: downloadURL,
-  score: mockScore,
-  jobType,
-  scope,
-  timestamp: serverTimestamp()
+    userId: user.uid,
+    imageUrl: downloadURL,
+    score: mockScore,
+    jobType,
+    scope,
+    timestamp: serverTimestamp()
+  });
+
+  // ✅ Only redirect after everything is done
+  window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
 });
 
-// ✅ Auto-redirect to Vault page
-window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
-
-};
 
   return (
     <div style={{ fontFamily: 'Arial', padding: '2rem', maxWidth: '600px', margin: 'auto' }}>
