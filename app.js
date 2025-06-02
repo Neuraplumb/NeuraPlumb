@@ -5,7 +5,7 @@ import { getAuth } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
 
 const firebaseConfig = {
-  apiKey: "AIza...",
+  apiKey: "AIza...", // replace with your actual key
   authDomain: "neuraplumb-temp.firebaseapp.com",
   projectId: "neuraplumb-temp",
   storageBucket: "neuraplumb-temp.appspot.com",
@@ -40,7 +40,11 @@ export default function Home() {
     try {
       const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
       await uploadBytes(storageRef, file);
+
       const downloadURL = await getDownloadURL(storageRef);
+      if (!downloadURL || !downloadURL.startsWith("http")) {
+        throw new Error("Invalid download URL");
+      }
 
       await addDoc(collection(db, "uploads"), {
         userId: user.uid,
@@ -53,7 +57,6 @@ export default function Home() {
 
       console.log("✅ Redirecting with:", downloadURL);
       window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
-
     } catch (err) {
       console.error("❌ Upload failed:", err);
       alert("Upload failed. Check console.");
@@ -99,3 +102,4 @@ export default function Home() {
     </div>
   );
 }
+
