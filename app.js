@@ -41,7 +41,7 @@ const handleSubmit = async (e) => {
 });
 
 // ✅ Auto-redirect to Vault page
-window.location.href = "/vault.html";
+window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
 
 };
 
