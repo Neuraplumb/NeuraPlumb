@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TrustQuote Viewer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .quote {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .quote img {
+      max-width: 300px;
+      border-radius: 10px;
+    }
+    .score-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      color: white;
+      font-weight: bold;
+      border-radius: 20px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Submitted TrustQuotes</h1>
+  <div id="quoteList"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIza...", // your actual key
+      authDomain: "neuraplumb-temp.firebaseapp.com",
+      projectId: "neuraplumb-temp",
+      storageBucket: "neuraplumb-temp.appspot.com",
+      messagingSenderId: "XXXXXXXXXXX",
+      appId: "1:XXXXXXXXXXX:web:XXXXXXXXXXXX"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const quoteList = document.getElementById("quoteList");
+
+    function getBadgeColor(score) {
+      switch (score?.toString()) {
+        case "1": return "red";
+        case "2": return "orange";
+        case "3": return "darkorange";
+        case "4": return "green";
+        case "5": return "blue";
+        default: return "gray";
+      }
+    }
+
+    async function loadQuotes() {
+      const snapshot = await getDocs(collection(db, "quotes"));
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "quote";
+        div.innerHTML = `
+          <img src="${data.imageUrl}" alt="preview" />
+          <div class="score-badge" style="background:${getBadgeColor(data.score)}">NeuraScore: ${data.score}</div>
+          <p><strong>Labor:</strong> ${data.laborHours} hrs</p>
+          <p><strong>Materials:</strong> $${data.materialsCost.toFixed(2)}</p>
+          <p><strong>Difficulty:</strong> ${data.difficulty}</p>
+          <p><strong>Notes:</strong> ${data.notes || "(none)"}</p>
+          <p><em>Submitted: ${data.createdAt?.toDate?.().toLocaleString?.() || ""}</em></p>
+        `;
+        quoteList.appendChild(div);
+      });
+    }
+
+    loadQuotes();
+  </script>
+</body>
+</html>
