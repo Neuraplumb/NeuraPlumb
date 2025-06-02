@@ -1,16 +1,49 @@
-import React, { useState } from 'react';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { initializeApp } from 'firebase/app';
 
-export default function Home() {
-  const [score, setScore] = useState(null);
-  const [jobType, setJobType] = useState('');
-  const [scope, setScope] = useState('');
-  const [file, setFile] = useState(null);
+const firebaseConfig = {
+  apiKey: "AIza...",
+  authDomain: "neuraplumb-temp.firebaseapp.com",
+  projectId: "neuraplumb-temp",
+  storageBucket: "neuraplumb-temp.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const mockScore = Math.floor(Math.random() * 5) + 1;
-    setScore(mockScore);
-  };
+const app = initializeApp(firebaseConfig);
+const storage = getStorage(app);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!file) return alert('Please upload a file first.');
+
+  const mockScore = Math.floor(Math.random() * 5) + 1;
+  setScore(mockScore);
+
+  const user = auth.currentUser;
+  if (!user) {
+    alert("You must be signed in to submit.");
+    return;
+  }
+
+  const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
+  await addDoc(collection(db, "uploads"), {
+  userId: user.uid,
+  imageUrl: downloadURL,
+  score: mockScore,
+  jobType,
+  scope,
+  timestamp: serverTimestamp()
+});
+
+// ✅ Auto-redirect to Vault page
+window.location.href = "/vault.html";
+
+};
 
   return (
     <div style={{ fontFamily: 'Arial', padding: '2rem', maxWidth: '600px', margin: 'auto' }}>
@@ -50,4 +83,5 @@ export default function Home() {
       )}
     </div>
   );
-}
+
+
