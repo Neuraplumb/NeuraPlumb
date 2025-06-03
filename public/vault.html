@@ -65,6 +65,46 @@
       scoreDisplay.appendChild(badge);
     }
 
+    const trustContainer = document.createElement("div");
+trustContainer.style.marginTop = "12px";
+trustContainer.style.padding = "12px";
+trustContainer.style.border = "1px solid #ddd";
+trustContainer.style.borderRadius = "8px";
+trustContainer.style.maxWidth = "300px";
+trustContainer.style.background = "#fafafa";
+
+trustContainer.innerHTML = `
+  <div style="font-weight:bold;margin-bottom:6px;">TrustQuote</div>
+  <div><strong>Difficulty:</strong> ${getDifficulty(score)}</div>
+  <div><strong>Labor Range:</strong> ${getPriceRange(score)}</div>
+`;
+
+scoreDisplay.appendChild(trustContainer);
+
+function getDifficulty(score) {
+  const s = String(score);
+  switch (s) {
+    case "1": return "Extreme";
+    case "2": return "High";
+    case "3": return "Moderate";
+    case "4": return "Light";
+    case "5": return "Simple";
+    default: return "Unknown";
+  }
+}
+
+function getPriceRange(score) {
+  const s = String(score);
+  switch (s) {
+    case "1": return "$2,500 – $4,000";
+    case "2": return "$1,800 – $2,800";
+    case "3": return "$1,200 – $1,800";
+    case "4": return "$800 – $1,200";
+    case "5": return "$300 – $800";
+    default: return "Varies";
+  }
+}
+
     async function loadVaultData() {
   const user = firebase.auth().currentUser;
   if (!user) return;
