@@ -36,10 +36,12 @@
     const params = new URLSearchParams(window.location.search);
     const imageUrl = params.get("imgUrl");
     const score = params.get("score");
+    const jobType = params.get("jobType");
 
     console.log("✅ imageUrl param:", imageUrl);
     console.log("✅ score param:", score);
-
+    console.log("✅ jobType param:", jobType);
+    
     const img = document.getElementById("previewImage");
     const scoreDisplay = document.getElementById("scoreDisplay");
 
@@ -76,7 +78,7 @@ trustContainer.style.background = "#fafafa";
 trustContainer.innerHTML = `
   <div style="font-weight:bold;margin-bottom:6px;">TrustQuote</div>
   <div><strong>Difficulty:</strong> ${getDifficulty(score)}</div>
-  <div><strong>Labor Range:</strong> ${getPriceRange(score)}</div>
+  <div><strong>Labor Range:</strong> ${getPriceRange(score, jobType)}</div>
 `;
 
 scoreDisplay.appendChild(trustContainer);
@@ -93,8 +95,11 @@ function getDifficulty(score) {
   }
 }
 
-function getPriceRange(score) {
+function getPriceRange(score, jobType) {
   const s = String(score);
+  if (s === "3" && jobType === "Repipe") {
+    return "$1,600 – $2,400";
+  }
   switch (s) {
     case "1": return "$2,500 – $4,000";
     case "2": return "$1,800 – $2,800";
