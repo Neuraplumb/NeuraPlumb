@@ -1,0 +1,61 @@
+<!-- vault.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vault Placeholder</title>
+</head>
+<body>
+  <img id="previewImage" src="" alt="Job Preview" width="300" style="display: none;" />
+  <p id="scoreDisplay"></p>
+
+  <h1>Vault Placeholder</h1>
+  <p>This is where TrustQuote will live.</p>
+
+  <script type="module">
+    const params = new URLSearchParams(window.location.search);
+    const imageUrl = params.get("imgUrl");
+    const score = params.get("score");
+
+    console.log("✅ imageUrl param:", imageUrl);
+    console.log("✅ score param:", score);
+
+    const img = document.getElementById("previewImage");
+    const scoreDisplay = document.getElementById("scoreDisplay");
+
+    if (imageUrl) {
+      img.src = imageUrl;
+      img.style.display = "block";
+      img.style.borderRadius = "12px";
+      img.style.marginTop = "20px";
+    }
+
+    if (score) {
+      const badge = document.createElement("div");
+      badge.textContent = `NeuraScore: ${score}`;
+      badge.style.backgroundColor = getBadgeColor(score);
+      badge.style.color = "white";
+      badge.style.padding = "10px 20px";
+      badge.style.borderRadius = "30px";
+      badge.style.fontSize = "18px";
+      badge.style.fontWeight = "bold";
+      badge.style.display = "inline-block";
+      badge.style.marginTop = "20px";
+      badge.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+      scoreDisplay.appendChild(badge);
+    }
+
+    function getBadgeColor(score) {
+      switch (score) {
+        case "1": return "red";
+        case "2": return "orange";
+        case "3": return "darkorange";
+        case "4": return "green";
+        case "5": return "blue";
+        default: return "gray";
+      }
+    }
+  </script>
+</body>
+</html>
