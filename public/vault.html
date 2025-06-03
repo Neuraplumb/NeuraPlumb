@@ -2,16 +2,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBzkTSn1Xec-kGSHPahtCQ-nhmni3qzAIs",
+    authDomain: "neuraplumb-temp.firebaseapp.com",
+    projectId: "neuraplumb-temp",
+    storageBucket: "neuraplumb-temp.appspot.com",
+    messagingSenderId: "496029226738",
+    appId: "1:496029226738:web:f837e91b9df82ad78b1b9b"
+  };
+  firebase.initializeApp(firebaseConfig);
+</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Vault Placeholder</title>
 </head>
 <body>
   <img id="previewImage" src="" alt="Job Preview" width="300" style="display: none;" />
-  <p id="scoreDisplay"></p>
+  <div id="scoreDisplay" style="margin-top: 20px;"></div>
 
   <h1>Vault Placeholder</h1>
   <p>This is where TrustQuote will live.</p>
+
+  <h2>Your Vault</h2>
+  <div id="vault"></div>
 
   <script type="module">
     const params = new URLSearchParams(window.location.search);
@@ -46,16 +65,57 @@
       scoreDisplay.appendChild(badge);
     }
 
+    async function loadVaultData() {
+  const user = firebase.auth().currentUser;
+  if (!user) return;
+
+  const vaultContainer = document.getElementById('vault');
+  vaultContainer.innerHTML = ''; // Clear current entries
+
+  const querySnapshot = await firebase.firestore()
+    .collection('uploads')
+    .where('userId', '==', user.uid)
+    .orderBy('timestamp', 'desc')
+    .get();
+
+  querySnapshot.forEach(doc => {
+    const data = doc.data();
+    const card = document.createElement('div');
+    card.classList.add('vault-card');
+
+    card.innerHTML = `
+      <img src="${data.imageUrl}" alt="Plumbing Photo" class="vault-thumb" />
+      <div class="vault-info">
+        <div><strong>Score:</strong> ${data.mockScore}</div>
+        <div><strong>Job Type:</strong> ${data.jobType || 'N/A'}</div>
+        <div><strong>Date:</strong> ${new Date(data.timestamp?.toDate()).toLocaleString()}</div>
+      </div>
+    `;
+
+    vaultContainer.appendChild(card);
+  });
+}
+    firebase.auth().signInWithEmailAndPassword("jaymz6435@gmail.com", "Elara572025!")
+  .then(() => console.log("✅ Signed in manually"))
+  .catch(err => console.error("❌ Sign-in failed:", err));
+    
+    firebase.auth().onAuthStateChanged(user => {
+      console.log("👤 Signed-in user:", user ? user.uid : "None");
+  if (user) {
+    loadVaultData();
+  }
+});
     function getBadgeColor(score) {
-      switch (score) {
-        case "1": return "red";
-        case "2": return "orange";
-        case "3": return "darkorange";
-        case "4": return "green";
-        case "5": return "blue";
-        default: return "gray";
-      }
-    }
+  const s = String(score); // Normalize to string
+  switch (s) {
+    case "1": return "red";
+    case "2": return "orange";
+    case "3": return "yellow";
+    case "4": return "green";
+    case "5": return "blue";
+    default: return "gray";
+  }
+}
   </script>
 </body>
 </html>
