@@ -1,79 +1,41 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>NeuraPlumb Vault</title>
-  <style>
-    .card {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 10px;
-      max-width: 300px;
-    }
-    .img-preview {
-      width: 100%;
-      border-radius: 6px;
-    }
-    .score {
-      font-weight: bold;
-    }
-    .trust-note {
-      margin-top: 5px;
-      font-style: italic;
-    }
-  </style>
-</head>
-<body>
-  <h2>Your Plumbing Photo Vault</h2>
-  <div id="vaultContainer"></div>
+  <head>
+    <title>NeuraPlumb Upload Portal</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  </head>
+  <body>
+    <h1>Upload a Plumbing Photo</h1>
+    <input type="file" id="fileInput" />
+    <button onclick="uploadFile()">Upload</button>
+    <p id="status"></p>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIza...",
+        authDomain: "neuraplumb-temp.firebaseapp.com",
+        projectId: "neuraplumb-temp",
+        storageBucket: "neuraplumb-temp.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const storage = firebase.storage();
 
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
+      function uploadFile() {
+        const file = document.getElementById("fileInput").files[0];
+        if (!file) return;
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    const vaultContainer = document.getElementById("vaultContainer");
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        vaultContainer.innerHTML = "<p>Please sign in to view your vault.</p>";
-        return;
+        const storageRef = storage.ref("uploads/" + file.name);
+        storageRef.put(file).then(() => {
+          document.getElementById("status").innerText = "✅ Upload complete!";
+        }).catch((err) => {
+          document.getElementById("status").innerText = "❌ Error: " + err.message;
+        });
       }
-
-      const imagesRef = collection(db, "users", user.uid, "images");
-      const snapshot = await getDocs(imagesRef);
-
-      if (snapshot.empty) {
-        vaultContainer.innerHTML = "<p>No uploads yet.</p>";
-        return;
-      }
-
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <img class="img-preview" src="${data.downloadURL}" alt="${data.fileName}">
-          <p class="score">NeuraScore: ${data.score ?? '—'}</p>
-          <p class="trust-note">${data.trustNote ?? 'No trust message available.'}</p>
-        `;
-        vaultContainer.appendChild(card);
-      });
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>
-
