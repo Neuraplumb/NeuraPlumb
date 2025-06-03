@@ -47,21 +47,19 @@ export default function Home() {
       }
 
       await addDoc(collection(db, "uploads"), {
-        userId: user.uid,
-        imageUrl: downloadURL,
-        score: mockScore,
-        jobType,
-        scope,
-        timestamp: serverTimestamp()
-      });
+  userId: user.uid,
+  imageUrl: downloadURL,
+  score: mockScore,
+  jobType,
+  scope,
+  timestamp: serverTimestamp()
+});
 
-      console.log("📸 FINAL VALID downloadURL:", downloadURL);
+console.log("✅ FORCED REDIRECT PATH:", `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`);
 
-setTimeout(() => {
-  alert(`Redirecting to vault:\n${downloadURL}`);
-  window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
-}, 2000);
-  
+alert(`✅ Sending browser to:\n/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`);
+
+window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
 
 
     } catch (err) {
