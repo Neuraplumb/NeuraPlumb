@@ -19,55 +19,49 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 export default function Home() {
-  const [score, setScore] = useState(null);
-  const [jobType, setJobType] = useState('');
-  const [scope, setScope] = useState('');
-  const [file, setFile] = useState(null);
-
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!file) return alert('Please upload a file first.');
+  e.preventDefault();
+  if (!file) return alert('Please upload a file first.');
 
-    const mockScore = Math.floor(Math.random() * 5) + 1;
-    setScore(mockScore);
+  const mockScore = Math.floor(Math.random() * 5) + 1;
+  setScore(mockScore);
 
-    const user = auth.currentUser;
-    if (!user) {
-      alert("You must be signed in to submit.");
-      return;
+  const user = auth.currentUser;
+  if (!user) {
+    alert("You must be signed in to submit.");
+    return;
+  }
+
+  try {
+    const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
+    await uploadBytes(storageRef, file);
+
+    const downloadURL = await getDownloadURL(storageRef);
+    if (!downloadURL || !downloadURL.startsWith("http")) {
+      throw new Error("Invalid or empty download URL");
     }
 
-    try {
-      const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
-      await uploadBytes(storageRef, file);
+    await addDoc(collection(db, "uploads"), {
+      userId: user.uid,
+      imageUrl: downloadURL,
+      score: mockScore,
+      jobType,
+      scope,
+      timestamp: serverTimestamp()
+    });
 
-      const downloadURL = await getDownloadURL(storageRef);
-      if (!downloadURL || !downloadURL.startsWith("http")) {
-        throw new Error("Invalid download URL");
-      }
+    const redirectPath = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
 
-      await addDoc(collection(db, "uploads"), {
-  userId: user.uid,
-  imageUrl: downloadURL,
-  score: mockScore,
-  jobType,
-  scope,
-  timestamp: serverTimestamp()
-});
+    console.log("✅ REDIRECT PATH:", redirectPath);
+    alert(`✅ Redirecting to:\n${redirectPath}`);
 
-const redirectPath = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
+    window.location.href = redirectPath;
 
-console.log("✅ FORCED REDIRECT PATH:", redirectPath);
-alert(`✅ Sending browser to:\n${redirectPath}`);
-
-window.location.href = redirectPath;
-
-
-    } catch (err) {
-      console.error("❌ Upload failed:", err);
-      alert("Upload failed. Check console.");
-    }
-  };
+  } catch (err) {
+    console.error("❌ Upload failed:", err);
+    alert("Upload failed. Check console.");
+  }
+};
 
   return (
     <div style={{ fontFamily: 'Arial', padding: '2rem', maxWidth: '600px', margin: 'auto' }}>
