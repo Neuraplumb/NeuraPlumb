@@ -41,7 +41,7 @@
     console.log("✅ imageUrl param:", imageUrl);
     console.log("✅ score param:", score);
     console.log("✅ jobType param:", jobType);
-    
+
     const img = document.getElementById("previewImage");
     const scoreDisplay = document.getElementById("scoreDisplay");
 
@@ -83,23 +83,19 @@ trustContainer.innerHTML = `
 
 scoreDisplay.appendChild(trustContainer);
 
-function getDifficulty(score) {
+function getPriceRange(score, jobType, profile = "standard") {
   const s = String(score);
-  switch (s) {
-    case "1": return "Extreme";
-    case "2": return "High";
-    case "3": return "Moderate";
-    case "4": return "Light";
-    case "5": return "Simple";
-    default: return "Unknown";
-  }
-}
+  const jt = String(jobType || "");
+  const p = String(profile);
 
-function getPriceRange(score, jobType) {
-  const s = String(score);
-  if (s === "3" && jobType === "Repipe") {
+  if (s === "3" && jt === "Repipe" && p === "standard") {
     return "$1,600 – $2,400";
   }
+
+  if (s === "3" && jt === "Repipe" && p === "premium") {
+    return "$1,800 – $2,700";
+  }
+
   switch (s) {
     case "1": return "$2,500 – $4,000";
     case "2": return "$1,800 – $2,800";
@@ -109,6 +105,7 @@ function getPriceRange(score, jobType) {
     default: return "Varies";
   }
 }
+
 
     async function loadVaultData() {
   const user = firebase.auth().currentUser;
