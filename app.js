@@ -55,11 +55,12 @@ export default function Home() {
   timestamp: serverTimestamp()
 });
 
-console.log("✅ FORCED REDIRECT PATH:", `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`);
+const redirectPath = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
 
-alert(`✅ Sending browser to:\n/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`);
+console.log("✅ FORCED REDIRECT PATH:", redirectPath);
+alert(`✅ Sending browser to:\n${redirectPath}`);
 
-window.location.href = `/vault.html?imgUrl=${encodeURIComponent(downloadURL)}&score=${mockScore}`;
+window.location.href = redirectPath;
 
 
     } catch (err) {
