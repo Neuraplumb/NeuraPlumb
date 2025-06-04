@@ -528,13 +528,38 @@ window.viewQuoteHistory = async function(docId) {
 
   if (versions.length === 0) return alert("No history available.");
 
-  let historyText = "Past Versions:\n";
-  for (const v of versions) {
-    const ts = v.timestamp?.toDate?.().toLocaleString?.() || "Unknown time";
-    historyText += `• ${v.quote || "Blank"} — ${ts}\n`;
-  }
+  const container = document.createElement("div");
+  container.style.padding = "12px";
 
-  alert(historyText);
+  versions.forEach((v, index) => {
+    
+    const q = v.quote || "Blank";
+
+    const line = document.createElement("div");
+    line.innerHTML = `
+      <strong>${q}</strong> — <span style="color:#777">${ts}</span>
+      <button style="margin-left: 12px;" onclick="restoreManualQuote('${docId}', '${q}')">🔁 Restore</button>
+    `;
+    container.appendChild(line);
+  });
+
+  const popup = window.open("", "Quote History", "width=400,height=400");
+  popup.document.write("<h3>Past Versions</h3>");
+  popup.document.body.appendChild(container);
+};
+
+window.restoreManualQuote = async function(docId, quote) {
+  const confirmed = confirm(`Restore this quote?\n"${quote}"`);
+  if (!confirmed) return;
+
+  const docRef = firebase.firestore().collection('uploads').doc(docId);
+  await docRef.update({
+    manualQuote: quote,
+    lastEdited: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  alert("✅ Restored.");
+  loadVaultData(); // Refresh vault display
 };
     firebase.auth().signInWithEmailAndPassword("jaymz6435@gmail.com", "Elara572025!")
   .then(() => console.log("✅ Signed in manually"))
