@@ -6,6 +6,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions-compat.js"></script>
 
 <script>
   const firebaseConfig = {
@@ -42,6 +43,19 @@
     const score = params.get("score");
     const jobType = params.get("jobType");
     const profile = params.get("profile") || "standard";
+
+    const functions = firebase.app().functions();
+
+    async function loadTrustQuote(scoreVal, jobTypeVal, profileVal, domTarget) {
+      const explainQuote = functions.httpsCallable("explainQuote");
+      try {
+        const res = await explainQuote({ score: scoreVal, jobType: jobTypeVal, profile: profileVal });
+        domTarget.innerText = res.data.explanation;
+      } catch (err) {
+        domTarget.innerText = "⚠️ AI quote failed to load.";
+        console.error("TrustQuote error:", err);
+      }
+    }
 
     // === Insert before <div id="vault"></div> ===
     const filterBar = document.createElement("div");
@@ -658,6 +672,7 @@ pdfButton.addEventListener("click", () => {
                 ${data.jobType || 'N/A'}
               </span>
             </div>
+            <div class="trustquote-box" id="trustquote-${docId}"></div>
             <div><strong>Profile:</strong> ${data.profile || 'standard'}</div>
             <div><strong>Status:</strong> ${tag}</div>
             <div><strong>Date:</strong> ${new Date(data.timestamp?.toDate()).toLocaleString()}</div>
@@ -675,6 +690,9 @@ pdfButton.addEventListener("click", () => {
           </div>
         `;
         vaultContainer.appendChild(card);
+
+        const trustBox = document.getElementById(`trustquote-${docId}`);
+        loadTrustQuote(data.mockScore, data.jobType, data.profile || 'standard', trustBox);
 
         card.addEventListener("click", () => {
           const params = new URLSearchParams();
