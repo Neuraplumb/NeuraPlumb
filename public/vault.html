@@ -39,6 +39,33 @@
     const jobType = params.get("jobType");
     const profile = params.get("profile") || "standard";
 
+    // === Insert before <div id="vault"></div> ===
+    const filterBar = document.createElement("div");
+    filterBar.style.marginBottom = "20px";
+    filterBar.innerHTML = `
+      <label>Filter: </label>
+      <select id="jobFilter">
+        <option value="">All Jobs</option>
+        <option value="Repipe">Repipe</option>
+        <option value="Sewer">Sewer</option>
+        <option value="WaterHeater">WaterHeater</option>
+        <option value="Drain">Drain</option>
+        <option value="Inspection">Inspection</option>
+      </select>
+      <select id="profileFilter">
+        <option value="">All Profiles</option>
+        <option value="standard">Standard</option>
+        <option value="premium">Premium</option>
+      </select>
+      <select id="tagFilter">
+        <option value="">All Tags</option>
+        <option value="Elite">✅ Elite</option>
+        <option value="NeedsReview">⚠️ Needs Review</option>
+        <option value="Reviewed">🧠 Reviewed</option>
+      </select>
+    `;
+    document.body.insertBefore(filterBar, document.getElementById("vault"));
+
     function getDifficulty(score) {
   const s = String(score);
   switch (s) {
@@ -268,66 +295,73 @@ function getPriceRange(score, jobType, profile = "standard") {
 
 
     async function loadVaultData() {
-  const user = firebase.auth().currentUser;
-  if (!user) return;
+       const user = firebase.auth().currentUser;
+      if (!user) return;
 
-  const vaultContainer = document.getElementById('vault');
-  vaultContainer.innerHTML = ''; // Clear current entries
+      const vaultContainer = document.getElementById('vault');
+      vaultContainer.innerHTML = '';
 
-  const querySnapshot = await firebase.firestore()
-    .collection('uploads')
-    .where('userId', '==', user.uid)
-    .orderBy('timestamp', 'desc')
-    .get();
+      const jobFilter = document.getElementById('jobFilter')?.value || '';
+      const profileFilter = document.getElementById('profileFilter')?.value || '';
+      const tagFilter = document.getElementById('tagFilter')?.value || '';
 
-  querySnapshot.forEach(doc => {
-    const data = doc.data();
-    const docId = doc.id;
-    const profile = params.get("profile") || "standard";
-    const card = document.createElement('div');
-    card.classList.add('vault-card');
+      const querySnapshot = await firebase.firestore()
+        .collection('uploads')
+        .where('userId', '==', user.uid)
+        .orderBy('timestamp', 'desc')
+        .get();
 
-    const jobColorMap = {
-      Repipe: "#ffd54f",
-      Sewer: "#81c784",
-      WaterHeater: "#4fc3f7",
-      Drain: "#ff8a65",
-      Inspection: "#ce93d8"
-    };
-    const tagColor = jobColorMap[data.jobType] || "#eee";
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        const docId = doc.id;
 
-     card.innerHTML = `
-        <img src="${data.imageUrl}" alt="Plumbing Photo" class="vault-thumb" />
-        <div class="vault-info">
-          <div><strong>Score:</strong> ${data.mockScore}</div>
-          ${data.manualQuote ? `<div><strong>Manual Quote:</strong> <span id="quote-${docId}">${data.manualQuote}</span></div>` : ""}
-          ${data.locked ? `<div style="color:red;font-weight:bold;">🔒 Locked</div>` : ""}
-          <div>
-            <strong>Job Type:</strong>
-            <span style="padding:2px 6px; border-radius:6px; background:${tagColor}; font-size:12px; font-weight:bold;">
-              ${data.jobType || 'N/A'}
-            </span>
-           </div>
-          <div><strong>Date:</strong> ${new Date(data.timestamp?.toDate()).toLocaleString()}</div>
-          <button style="margin-top: 6px;" onclick="editManualQuote('${docId}', ${!!data.locked})" ${data.locked ? "disabled" : ""}>
-            Edit Quote
-          </button>
-          <button style="margin-left: 6px;" onclick="toggleLock('${docId}', ${!!data.locked})">
-            ${data.locked ? "Unlock" : "Lock"}
-          </button>
-        </div>
-      `;
+        if (jobFilter && data.jobType !== jobFilter) return;
+        if (profileFilter && data.profile !== profileFilter) return;
 
-      let tag = "";
-      if (data.mockScore === "5" && !data.manualQuote) tag = "✅ Elite";
-      else if (data.mockScore === "1" || data.mockScore === "2") tag = "⚠️ Needs Review";
-      else if (data.manualQuote) tag = "🧠 Reviewed";
+        const tag =
+          data.mockScore === '5' && !data.manualQuote ? 'Elite' :
+          (data.mockScore === '1' || data.mockScore === '2') ? 'NeedsReview' :
+          data.manualQuote ? 'Reviewed' : '';
 
-      card.innerHTML += `<div><strong>Status:</strong> ${tag}</div>`;
+        if (tagFilter && tag !== tagFilter) return;
 
-    vaultContainer.appendChild(card);
-  });
-}
+        const jobColorMap = {
+          Repipe: '#ffd54f',
+          Sewer: '#81c784',
+          WaterHeater: '#4fc3f7',
+          Drain: '#ff8a65',
+          Inspection: '#ce93d8'
+        };
+        const tagColor = jobColorMap[data.jobType] || '#eee';
+
+        const card = document.createElement('div');
+        card.classList.add('vault-card');
+        card.innerHTML = `
+          <img src="${data.imageUrl}" alt="Plumbing Photo" class="vault-thumb" />
+          <div class="vault-info">
+            <div><strong>Score:</strong> ${data.mockScore}</div>
+            ${data.manualQuote ? `<div><strong>Manual Quote:</strong> <span id="quote-${docId}">${data.manualQuote}</span></div>` : ''}
+            ${data.locked ? `<div style="color:red;font-weight:bold;">🔒 Locked</div>` : ''}
+            <div>
+              <strong>Job Type:</strong>
+              <span style="padding:2px 6px; border-radius:6px; background:${tagColor}; font-size:12px; font-weight:bold;">
+                ${data.jobType || 'N/A'}
+              </span>
+            </div>
+            <div><strong>Profile:</strong> ${data.profile || 'standard'}</div>
+            <div><strong>Status:</strong> ${tag}</div>
+            <div><strong>Date:</strong> ${new Date(data.timestamp?.toDate()).toLocaleString()}</div>
+            <button style="margin-top: 6px;" onclick="editManualQuote('${docId}', ${!!data.locked})" ${data.locked ? 'disabled' : ''}>
+              Edit Quote
+            </button>
+            <button style="margin-left: 6px;" onclick="toggleLock('${docId}', ${!!data.locked})">
+              ${data.locked ? 'Unlock' : 'Lock'}
+            </button>
+          </div>
+        `;
+        vaultContainer.appendChild(card);
+      });
+    }
 window.editManualQuote = async function(docId, isLocked) {
   if (isLocked) return alert("Quote is locked.");
   const newQuote = prompt("Enter new manual quote:");
@@ -352,13 +386,17 @@ window.toggleLock = async function(docId, currentState) {
   .then(() => console.log("✅ Signed in manually"))
   .catch(err => console.error("❌ Sign-in failed:", err));
     
-    firebase.auth().onAuthStateChanged(user => {
+firebase.auth().onAuthStateChanged(user => {
       console.log("👤 Signed-in user:", user ? user.uid : "None");
   if (user) {
     loadVaultData();
   }
 });
-    function getBadgeColor(score) {
+    // === Auto-refresh filters on change ===
+  ["jobFilter", "profileFilter", "tagFilter"].forEach(id => {
+    document.getElementById(id)?.addEventListener("change", loadVaultData);
+  });
+  function getBadgeColor(score) {
   const s = String(score); // Normalize to string
   switch (s) {
     case "1": return "red";
