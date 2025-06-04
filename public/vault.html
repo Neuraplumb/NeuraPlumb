@@ -169,6 +169,14 @@
       profileSelector.value = profile;
       scoreDisplay.appendChild(profileSelector);
 
+      // === Premium Profile Visual Logic ===
+      const profileVisualTag = document.createElement("div");
+      profileVisualTag.style.marginTop = "8px";
+      profileVisualTag.style.fontSize = "13px";
+      profileVisualTag.style.fontWeight = "bold";
+      profileVisualTag.style.color = "#444";
+      scoreDisplay.appendChild(profileVisualTag);
+
       const trustContainer = document.createElement("div");
 trustContainer.style.marginTop = "12px";
 trustContainer.style.padding = "12px";
@@ -215,9 +223,11 @@ function renderTrustQuote() {
   const isManual = overrideToggle.dataset.enabled === "true";
   overrideInput.style.display = isManual ? "block" : "none";
   saveOverrideButton.style.display = isManual ? "inline-block" : "none";
+
+  const selectedProfile = profileSelector.value;
   const laborRange = isManual && overrideInput.value
     ? overrideInput.value
-    : getPriceRange(score, jobType, profileSelector.value);
+    : getPriceRange(score, jobType, selectedProfile);
   trustContainer.innerHTML = `
    <div style="font-weight:bold;margin-bottom:6px;">TrustQuote</div>
   <div><strong>Difficulty:</strong> ${getDifficulty(score)}</div>
@@ -226,6 +236,12 @@ function renderTrustQuote() {
     ${getQuoteSummary(score, jobType)}
   </p>
   `;
+
+  // Show profile-based tier message
+  profileVisualTag.innerHTML =
+    selectedProfile === "premium"
+      ? `<span style="color:#D48B00;">💼 Premium View: Higher expected labor tier</span>`
+      : `<span style="color:#888;">Standard View</span>`
 }
 
 scoreDisplay.appendChild(trustContainer);
