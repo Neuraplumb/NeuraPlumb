@@ -38,6 +38,18 @@
     const score = params.get("score");
     const jobType = params.get("jobType");
 
+    function getDifficulty(score) {
+  const s = String(score);
+  switch (s) {
+    case "1": return "Extreme";
+    case "2": return "High";
+    case "3": return "Moderate";
+    case "4": return "Light";
+    case "5": return "Simple";
+    default: return "Unknown";
+  }
+}
+
     console.log("✅ imageUrl param:", imageUrl);
     console.log("✅ score param:", score);
     console.log("✅ jobType param:", jobType);
