@@ -70,6 +70,38 @@
     `;
     document.body.insertBefore(filterBar, document.getElementById("vault"));
 
+    const metricsBar = document.createElement("div");
+    metricsBar.style.marginTop = "16px";
+    metricsBar.style.fontSize = "13px";
+    metricsBar.style.padding = "8px";
+    metricsBar.style.borderTop = "1px solid #ddd";
+    metricsBar.style.color = "#333";
+    metricsBar.id = "metricsBar";
+    document.body.insertBefore(metricsBar, document.getElementById("vault"));
+
+    async function showMetrics(user) {
+      if (window.userRole !== "admin") return;
+
+      const querySnapshot = await firebase.firestore()
+        .collection('uploads')
+        .where('userId', '==', user.uid)
+        .get();
+
+      let overrideCount = 0;
+      let total = 0;
+
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        total += 1;
+        if (data.manualQuote) overrideCount += 1;
+      });
+
+      metricsBar.innerHTML = `
+        <strong>📊 Admin Metrics:</strong> ${overrideCount} override(s) out of ${total} quotes.
+        Override Rate: ${(overrideCount / total * 100).toFixed(1)}%
+      `;
+    }
+
      // === 🔧 GLOBAL CONFIG MAP ===
     const NeuraConfig = {
       scoreDifficultyMap: {
@@ -298,7 +330,7 @@ scoreDisplay.appendChild(trustContainer);
 
 renderTrustQuote();
 profileSelector.addEventListener("change", renderTrustQuote);
-     
+
       const acceptButton = document.createElement("button");
       acceptButton.textContent = "✅ Accept AI Quote";
       acceptButton.style.marginTop = "8px";
@@ -646,10 +678,12 @@ firebase.auth().onAuthStateChanged(async user => {
     const roleDoc = await firebase.firestore().collection('users').doc(user.uid).get();
     window.userRole = roleDoc.exists ? roleDoc.data().role : "viewer";
     console.log("🔐 Role:", window.userRole);
+    showMetrics(user);
     loadVaultData();
   } catch (err) {
     console.error("❌ Failed to fetch role:", err);
     window.userRole = "viewer";
+    showMetrics(user);
     loadVaultData();
   }
 });
