@@ -37,6 +37,7 @@
     const imageUrl = params.get("imgUrl");
     const score = params.get("score");
     const jobType = params.get("jobType");
+    const profile = params.get("profile") || "standard";
 
     function getDifficulty(score) {
   const s = String(score);
@@ -53,6 +54,7 @@
     console.log("✅ imageUrl param:", imageUrl);
     console.log("✅ score param:", score);
     console.log("✅ jobType param:", jobType);
+    console.log("✅ profile param:", profile);
 
     const img = document.getElementById("previewImage");
     const scoreDisplay = document.getElementById("scoreDisplay");
@@ -90,7 +92,7 @@ trustContainer.style.background = "#fafafa";
 trustContainer.innerHTML = `
   <div style="font-weight:bold;margin-bottom:6px;">TrustQuote</div>
   <div><strong>Difficulty:</strong> ${getDifficulty(score)}</div>
-  <div><strong>Labor Range:</strong> ${getPriceRange(score, jobType)}</div>
+  <div><strong>Labor Range:</strong> ${getPriceRange(score, jobType, profile)}</div>
 `;
 
 scoreDisplay.appendChild(trustContainer);
@@ -133,6 +135,7 @@ function getPriceRange(score, jobType, profile = "standard") {
     .get();
 
   querySnapshot.forEach(doc => {
+    const profile = params.get("profile") || "standard";
     const data = doc.data();
     const card = document.createElement('div');
     card.classList.add('vault-card');
