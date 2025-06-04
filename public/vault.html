@@ -149,11 +149,25 @@ function getPriceRange(score, jobType, profile = "standard") {
     const card = document.createElement('div');
     card.classList.add('vault-card');
 
+    const jobColorMap = {
+  Repipe: "#ffd54f",
+  Sewer: "#81c784",
+  WaterHeater: "#4fc3f7",
+  Drain: "#ff8a65",
+  Inspection: "#ce93d8"
+};
+const tagColor = jobColorMap[data.jobType] || "#eee";
+
     card.innerHTML = `
       <img src="${data.imageUrl}" alt="Plumbing Photo" class="vault-thumb" />
       <div class="vault-info">
         <div><strong>Score:</strong> ${data.mockScore}</div>
-        <div><strong>Job Type:</strong> ${data.jobType || 'N/A'}</div>
+        <div>
+  <strong>Job Type:</strong> 
+  <span style="padding:2px 6px; border-radius:6px; background:${tagColor}; font-size:12px; font-weight:bold;">
+  ${data.jobType || 'N/A'}
+</span>
+</div>
         <div><strong>Date:</strong> ${new Date(data.timestamp?.toDate()).toLocaleString()}</div>
       </div>
     `;
