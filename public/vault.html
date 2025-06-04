@@ -270,27 +270,46 @@ function getPriceRange(score, jobType, profile = "standard") {
       <div class="vault-info">
         <div><strong>Score:</strong> ${data.mockScore}</div>
         ${data.manualQuote ? `<div><strong>Manual Quote:</strong> <span id="quote-${docId}">${data.manualQuote}</span></div>` : ""}
+        ${data.locked ? `<div style="color:red;font-weight:bold;">🔒 Locked</div>` : ""}
         <div>
           <strong>Job Type:</strong> 
           <span style="padding:2px 6px; border-radius:6px; background:${tagColor}; font-size:12px; font-weight:bold;">
             ${data.jobType || 'N/A'}
           </span>
-       </div>
+         </div>
         <div><strong>Date:</strong> ${new Date(data.timestamp?.toDate()).toLocaleString()}</div>
-        <button style="margin-top: 6px;" onclick="editManualQuote('${docId}')">Edit Quote</button>
+        <button style="margin-top: 6px;" onclick="editManualQuote('${docId}', ${!!data.locked})" ${data.locked ? "disabled" : ""}>
+          Edit Quote
+        </button>
+        <button style="margin-left: 6px;" onclick="toggleLock('${docId}', ${!!data.locked})">
+          ${data.locked ? "Unlock" : "Lock"}
+        </button>
       </div>
     `;
 
     vaultContainer.appendChild(card);
   });
 }
-async function editManualQuote(docId) {
+window.editManualQuote = async function(docId, isLocked) {
+  if (isLocked) return alert("Quote is locked.");
   const newQuote = prompt("Enter new manual quote:");
-  if (newQuote === null) return; // Cancelled
-  await firebase.firestore().collection('uploads').doc(docId).update({ manualQuote: newQuote });
+  if (newQuote === null) return;
+  await firebase.firestore().collection('uploads').doc(docId).update({
+    manualQuote: newQuote,
+    lastEdited: firebase.firestore.FieldValue.serverTimestamp()
+  });
   const quoteSpan = document.getElementById(`quote-${docId}`);
   if (quoteSpan) quoteSpan.textContent = newQuote;
-}
+  alert("✅ Manual quote updated.");
+};
+
+window.toggleLock = async function(docId, currentState) {
+  await firebase.firestore().collection('uploads').doc(docId).update({
+    locked: !currentState
+  });
+  alert(currentState ? "🔓 Unlocked" : "🔒 Locked");
+  loadVaultData();
+};
     firebase.auth().signInWithEmailAndPassword("jaymz6435@gmail.com", "Elara572025!")
   .then(() => console.log("✅ Signed in manually"))
   .catch(err => console.error("❌ Sign-in failed:", err));
