@@ -94,7 +94,7 @@
 
       profileSelector.value = profile;
       scoreDisplay.appendChild(profileSelector);
-      
+
       const trustContainer = document.createElement("div");
 trustContainer.style.marginTop = "12px";
 trustContainer.style.padding = "12px";
@@ -126,6 +126,8 @@ footer.style.textAlign = "right";
 footer.textContent = "Powered by NeuraPlumb™";
 
 scoreDisplay.appendChild(footer);
+
+}
 
 function getQuoteSummary(score, jobType) {
   const s = String(score);
