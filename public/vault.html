@@ -34,6 +34,9 @@
 
   <script type="module">
     const params = new URLSearchParams(window.location.search);
+     const pdfScript = document.createElement("script");
+    pdfScript.src = "https://rawgit.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js";
+    document.head.appendChild(pdfScript);
     const imageUrl = params.get("imgUrl");
     const score = params.get("score");
     const jobType = params.get("jobType");
@@ -336,6 +339,15 @@ exportButton.style.fontSize = "14px";
 exportButton.style.cursor = "pointer";
 scoreDisplay.appendChild(exportButton);
 
+const pdfButton = document.createElement("button");
+pdfButton.textContent = "📄 Download PDF";
+pdfButton.style.marginTop = "12px";
+pdfButton.style.padding = "6px 12px";
+pdfButton.style.borderRadius = "6px";
+pdfButton.style.fontSize = "14px";
+pdfButton.style.cursor = "pointer";
+scoreDisplay.appendChild(pdfButton);
+
 exportButton.addEventListener("click", () => {
   const content = `
     🛠️ NeuraPlumb TrustQuote
@@ -356,6 +368,38 @@ exportButton.addEventListener("click", () => {
   a.href = url;
   a.download = "TrustQuote.txt";
   a.click();
+});
+
+pdfButton.addEventListener("click", () => {
+  const selectedProfile = profileSelector.value;
+  const isManual = overrideToggle.dataset.enabled === "true";
+  const laborRange = isManual && overrideInput.value
+    ? overrideInput.value
+    : getPriceRange(score, jobType, selectedProfile);
+
+  const pdfContent = document.createElement("div");
+  pdfContent.style.padding = "20px";
+  pdfContent.style.fontFamily = "Arial";
+  pdfContent.innerHTML = `
+    <h2 style="margin-bottom: 8px;">🔧 NeuraPlumb™ TrustQuote</h2>
+    <p><strong>NeuraScore:</strong> ${score}</p>
+    <p><strong>Difficulty:</strong> ${getDifficulty(score)}</p>
+    <p><strong>Labor Range:</strong> ${laborRange}</p>
+    <p><strong>Job Type:</strong> ${jobType}</p>
+    <p><strong>Profile:</strong> ${selectedProfile}</p>
+    <p style="margin-top: 12px; font-style: italic;">
+      ${getQuoteSummary(score, jobType)}
+    </p>
+    <hr />
+    <p style="font-size:12px; color:#888; text-align:right;">
+      Powered by NeuraPlumb™
+    </p>
+  `;
+
+  html2pdf()
+    .from(pdfContent)
+    .set({ filename: "TrustQuote.pdf" })
+    .save();
 });
 
 }
@@ -429,6 +473,15 @@ exportButton.addEventListener("click", () => {
           </div>
         `;
         vaultContainer.appendChild(card);
+
+        card.addEventListener("click", () => {
+          const params = new URLSearchParams();
+          if (data.imageUrl) params.set("imgUrl", data.imageUrl);
+          if (data.mockScore) params.set("score", data.mockScore);
+          if (data.jobType) params.set("jobType", data.jobType);
+          if (data.profile) params.set("profile", data.profile);
+          window.location.href = `vault.html?${params.toString()}`;
+        });
       });
     }
 window.editManualQuote = async function(docId, isLocked) {
