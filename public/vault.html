@@ -127,9 +127,20 @@ overrideInput.style.display = "none";
 scoreDisplay.appendChild(overrideInput);
 overrideInput.addEventListener("input", renderTrustQuote);
 
+const saveOverrideButton = document.createElement("button");
+saveOverrideButton.textContent = "Save Override to Vault";
+saveOverrideButton.style.marginTop = "8px";
+saveOverrideButton.style.padding = "6px 12px";
+saveOverrideButton.style.borderRadius = "6px";
+saveOverrideButton.style.fontSize = "14px";
+saveOverrideButton.style.cursor = "pointer";
+saveOverrideButton.style.display = "none";
+scoreDisplay.appendChild(saveOverrideButton);
+
 function renderTrustQuote() {
   const isManual = overrideToggle.dataset.enabled === "true";
   overrideInput.style.display = isManual ? "block" : "none";
+  saveOverrideButton.style.display = isManual ? "inline-block" : "none";
   const laborRange = isManual && overrideInput.value
     ? overrideInput.value
     : getPriceRange(score, jobType, profileSelector.value);
@@ -153,6 +164,27 @@ overrideToggle.addEventListener("click", () => {
   overrideToggle.textContent = current ? "Enable Manual Override" : "Disable Manual Override";
   overrideInput.style.display = overrideToggle.dataset.enabled === "true" ? "block" : "none";
   renderTrustQuote();
+});
+
+saveOverrideButton.addEventListener("click", async () => {
+  const user = firebase.auth().currentUser;
+  if (!user) return alert("Not signed in");
+
+  const manualQuote = overrideInput.value;
+  if (!manualQuote) return alert("Enter a value first");
+
+  const docRef = firebase.firestore().collection("uploads").doc();
+  await docRef.set({
+    userId: user.uid,
+    imageUrl: imageUrl || "",
+    mockScore: score,
+    jobType: jobType || "Unknown",
+    profile: profileSelector.value || "standard",
+    manualQuote: manualQuote,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  alert("✅ Manual override saved to Vault");
 });
 
 const footer = document.createElement("div");
@@ -236,11 +268,12 @@ const tagColor = jobColorMap[data.jobType] || "#eee";
       <img src="${data.imageUrl}" alt="Plumbing Photo" class="vault-thumb" />
       <div class="vault-info">
         <div><strong>Score:</strong> ${data.mockScore}</div>
+        ${data.manualQuote ? `<div><strong>Manual Quote:</strong> ${data.manualQuote}</div>` : ""}
         <div>
-  <strong>Job Type:</strong> 
-  <span style="padding:2px 6px; border-radius:6px; background:${tagColor}; font-size:12px; font-weight:bold;">
-  ${data.jobType || 'N/A'}
-</span>
+          <strong>Job Type:</strong> 
+          <span style="padding:2px 6px; border-radius:6px; background:${tagColor}; font-size:12px; font-weight:bold;">
+            ${data.jobType || 'N/A'}
+          </span>
 </div>
         <div><strong>Date:</strong> ${new Date(data.timestamp?.toDate()).toLocaleString()}</div>
       </div>
