@@ -185,6 +185,47 @@ scoreDisplay.appendChild(trustContainer);
 renderTrustQuote();
 profileSelector.addEventListener("change", renderTrustQuote);
 
+// === Add Explain Button Below TrustQuote ===
+      const explainButton = document.createElement("button");
+      explainButton.textContent = "🧠 Why this score?";
+      explainButton.style.marginTop = "16px";
+      explainButton.style.padding = "6px 12px";
+      explainButton.style.borderRadius = "6px";
+      explainButton.style.fontSize = "14px";
+      explainButton.style.cursor = "pointer";
+      scoreDisplay.appendChild(explainButton);
+
+      const explanationBox = document.createElement("div");
+      explanationBox.style.marginTop = "12px";
+      explanationBox.style.padding = "10px";
+      explanationBox.style.background = "#f0f8ff";
+      explanationBox.style.border = "1px solid #ccd";
+      explanationBox.style.borderRadius = "6px";
+      explanationBox.style.fontSize = "14px";
+      explanationBox.style.display = "none";
+      scoreDisplay.appendChild(explanationBox);
+
+      // === Explanation Logic ===
+      explainButton.addEventListener("click", () => {
+        const s = String(score);
+        const jt = String(jobType || "").toLowerCase();
+        const p = profileSelector.value;
+
+        let text = "";
+
+        if (s === "1") text = "This score indicates severe risks such as leaks, code violations, or improper installation. Immediate action is recommended.";
+        else if (s === "2") text = "The work appears below standard, potentially due to missing safeguards, exposed risk, or functional flaws.";
+        else if (s === "3" && jt === "repipe") text = "Moderate complexity for a repipe usually involves trenching, rerouting, and managing inspections.";
+        else if (s === "3") text = "This installation has moderate risk or effort involved. It's functional but may need closer inspection.";
+        else if (s === "4") text = "This install shows clean, competent execution with low risk. Minimal labor concerns.";
+        else if (s === "5") text = "This job meets elite standards with clean routing, full compliance, and zero visible faults.";
+
+        if (p === "premium") text += " (You are viewing this as a Premium profile, which reflects higher labor expectations and margins.)";
+
+        explanationBox.textContent = text;
+        explanationBox.style.display = "block";
+      });
+
 overrideToggle.addEventListener("click", () => {
   const current = overrideToggle.dataset.enabled === "true";
   overrideToggle.dataset.enabled = (!current).toString();
