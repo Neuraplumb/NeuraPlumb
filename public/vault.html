@@ -79,6 +79,22 @@
       badge.style.marginTop = "20px";
       badge.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
       scoreDisplay.appendChild(badge);
+      const profileSelector = document.createElement("select");
+      profileSelector.style.marginTop = "16px";
+      profileSelector.style.padding = "6px";
+      profileSelector.style.borderRadius = "6px";
+      profileSelector.style.fontSize = "14px";
+
+      ["standard", "premium"].forEach(option => {
+        const opt = document.createElement("option");
+        opt.value = option;
+        opt.textContent = option.charAt(0).toUpperCase() + option.slice(1);
+        profileSelector.appendChild(opt);
+      });
+
+      profileSelector.value = profile;
+
+      scoreDisplay.appendChild(profileSelector);
     }
 
     const trustContainer = document.createElement("div");
@@ -89,14 +105,19 @@ trustContainer.style.borderRadius = "8px";
 trustContainer.style.maxWidth = "300px";
 trustContainer.style.background = "#fafafa";
 
-trustContainer.innerHTML = `
-  <div style="font-weight:bold;margin-bottom:6px;">TrustQuote</div>
-  <div><strong>Difficulty:</strong> ${getDifficulty(score)}</div>
-  <div><strong>Labor Range:</strong> ${getPriceRange(score, jobType, profile)}</div>
-  <p style="font-style: italic; margin-top: 8px;">
-    ${getQuoteSummary(score, jobType)}
-  </p>
-`;
+function renderTrustQuote() {
+  trustContainer.innerHTML = `
+    <div style="font-weight:bold;margin-bottom:6px;">TrustQuote</div>
+    <div><strong>Difficulty:</strong> ${getDifficulty(score)}</div>
+    <div><strong>Labor Range:</strong> ${getPriceRange(score, jobType, profileSelector.value)}</div>
+    <p style="font-style: italic; margin-top: 8px;">
+      ${getQuoteSummary(score, jobType)}
+    </p>
+  `;
+}
+
+renderTrustQuote();
+profileSelector.addEventListener("change", renderTrustQuote);
 
 scoreDisplay.appendChild(trustContainer);
 
@@ -127,7 +148,7 @@ function getPriceRange(score, jobType, profile = "standard") {
   const s = String(score);
   const jt = String(jobType || "");
   const p = String(profile);
-  
+
   if (s === "3" && jt === "Repipe" && p === "standard") {
     return "$1,600 – $2,400";
   }
