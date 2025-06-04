@@ -66,17 +66,64 @@
     `;
     document.body.insertBefore(filterBar, document.getElementById("vault"));
 
+     // === 🔧 GLOBAL CONFIG MAP ===
+    const NeuraConfig = {
+      scoreDifficultyMap: {
+        "1": "Extreme",
+        "2": "High",
+        "3": "Moderate",
+        "4": "Light",
+        "5": "Simple"
+      },
+      quoteSummaryMap: {
+        "1": "This job may involve severe failure risks and should be reviewed immediately.",
+        "2": "This install falls below expected standards. Review is recommended.",
+        "3_repipe": "Repiping jobs at this difficulty often involve trenching, rerouting, and permit compliance.",
+        "3": "This job has moderate complexity with some risk factors.",
+        "4": "Above average quality with minimal labor complexity.",
+        "5": "This install meets elite standards. Minimal labor expected."
+      },
+      priceRanges: {
+        standard: {
+          "1": "$2,500 – $4,000",
+          "2": "$1,800 – $2,800",
+          "3_repipe": "$1,600 – $2,400",
+          "3": "$1,200 – $1,800",
+          "4": "$800 – $1,200",
+          "5": "$300 – $800"
+        },
+        premium: {
+          "1": "$2,800 – $4,400",
+          "2": "$2,000 – $3,000",
+          "3_repipe": "$1,800 – $2,700",
+          "3": "$1,500 – $2,200",
+          "4": "$1,000 – $1,500",
+          "5": "$400 – $900"
+        }
+      }
+    };
+
+    // === 🔄 REPLACE OLD LOGIC FUNCTIONS WITH CLEAN MAP CALLS ===
     function getDifficulty(score) {
-  const s = String(score);
-  switch (s) {
-    case "1": return "Extreme";
-    case "2": return "High";
-    case "3": return "Moderate";
-    case "4": return "Light";
-    case "5": return "Simple";
-    default: return "Unknown";
-  }
-}
+    return NeuraConfig.scoreDifficultyMap[String(score)] || "Unknown";
+    }
+
+    function getQuoteSummary(score, jobType) {
+      const key = `${score}_${(jobType || "").toLowerCase()}`;
+      return (
+        NeuraConfig.quoteSummaryMap[key] ||
+        NeuraConfig.quoteSummaryMap[String(score)] ||
+        ""
+      );
+    }
+
+    function getPriceRange(score, jobType, profile = "standard") {
+      const s = String(score);
+      const jt = String(jobType || "").toLowerCase();
+      const p = String(profile);
+      const key = s === "3" && jt === "repipe" ? "3_repipe" : s;
+      return NeuraConfig.priceRanges[p]?.[key] || "Varies";
+    }
 
     console.log("✅ imageUrl param:", imageUrl);
     console.log("✅ score param:", score);
@@ -297,42 +344,7 @@ exportButton.addEventListener("click", () => {
 
 }
 
-function getQuoteSummary(score, jobType) {
-  const s = String(score);
-  const jt = String(jobType || "");
-
-  if (s === "1") return "This job may involve severe failure risks and should be reviewed immediately.";
-  if (s === "2") return "This install falls below expected standards. Review is recommended.";
-  if (s === "3" && jt === "Repipe") return "Repiping jobs at this difficulty often involve trenching, rerouting, and permit compliance.";
-  if (s === "3") return "This job has moderate complexity with some risk factors.";
-  if (s === "4") return "Above average quality with minimal labor complexity.";
-  if (s === "5") return "This install meets elite standards. Minimal labor expected.";
-
-  return "";
-}
-
-function getPriceRange(score, jobType, profile = "standard") {
-  const s = String(score);
-  const jt = String(jobType || "");
-  const p = String(profile);
-
-  if (s === "3" && jt === "Repipe" && p === "standard") {
-    return "$1,600 – $2,400";
-  }
-
-  if (s === "3" && jt === "Repipe" && p === "premium") {
-    return "$1,800 – $2,700";
-  }
-
-  switch (s) {
-    case "1": return "$2,500 – $4,000";
-    case "2": return "$1,800 – $2,800";
-    case "3": return "$1,200 – $1,800";
-    case "4": return "$800 – $1,200";
-    case "5": return "$300 – $800";
-    default: return "Varies";
-  }
-}
+// (Old logic functions removed; now defined above using NeuraConfig)
 
 
     async function loadVaultData() {
