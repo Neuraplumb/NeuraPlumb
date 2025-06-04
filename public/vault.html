@@ -314,6 +314,17 @@ saveOverrideButton.style.cursor = "pointer";
 saveOverrideButton.style.display = "none";
 scoreDisplay.appendChild(saveOverrideButton);
 
+const testToggle = document.createElement("input");
+testToggle.type = "checkbox";
+testToggle.id = "testMode";
+testToggle.style.marginTop = "12px";
+
+const testLabel = document.createElement("label");
+testLabel.textContent = " ⛔ Test Mode (Don’t Save)";
+testLabel.htmlFor = "testMode";
+scoreDisplay.appendChild(testToggle);
+scoreDisplay.appendChild(testLabel);
+
 function renderTrustQuote() {
   const isManual = overrideToggle.dataset.enabled === "true";
   const isAdmin = window.userRole === "admin";
@@ -459,6 +470,9 @@ overrideToggle.addEventListener("click", () => {
 });
 
 saveOverrideButton.addEventListener("click", async () => {
+  if (document.getElementById("testMode")?.checked) {
+    return alert("⛔ Test Mode Enabled – Not Saved.");
+  }
   const user = firebase.auth().currentUser;
   if (!user) return alert("Not signed in");
 
