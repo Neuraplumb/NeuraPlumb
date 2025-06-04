@@ -296,27 +296,34 @@ function getPriceRange(score, jobType, profile = "standard") {
     };
     const tagColor = jobColorMap[data.jobType] || "#eee";
 
-    card.innerHTML = `
-      <img src="${data.imageUrl}" alt="Plumbing Photo" class="vault-thumb" />
-      <div class="vault-info">
-        <div><strong>Score:</strong> ${data.mockScore}</div>
-        ${data.manualQuote ? `<div><strong>Manual Quote:</strong> <span id="quote-${docId}">${data.manualQuote}</span></div>` : ""}
-        ${data.locked ? `<div style="color:red;font-weight:bold;">🔒 Locked</div>` : ""}
-        <div>
-          <strong>Job Type:</strong> 
-          <span style="padding:2px 6px; border-radius:6px; background:${tagColor}; font-size:12px; font-weight:bold;">
-            ${data.jobType || 'N/A'}
-          </span>
-         </div>
-        <div><strong>Date:</strong> ${new Date(data.timestamp?.toDate()).toLocaleString()}</div>
-        <button style="margin-top: 6px;" onclick="editManualQuote('${docId}', ${!!data.locked})" ${data.locked ? "disabled" : ""}>
-          Edit Quote
-        </button>
-        <button style="margin-left: 6px;" onclick="toggleLock('${docId}', ${!!data.locked})">
-          ${data.locked ? "Unlock" : "Lock"}
-        </button>
-      </div>
-    `;
+     card.innerHTML = `
+        <img src="${data.imageUrl}" alt="Plumbing Photo" class="vault-thumb" />
+        <div class="vault-info">
+          <div><strong>Score:</strong> ${data.mockScore}</div>
+          ${data.manualQuote ? `<div><strong>Manual Quote:</strong> <span id="quote-${docId}">${data.manualQuote}</span></div>` : ""}
+          ${data.locked ? `<div style="color:red;font-weight:bold;">🔒 Locked</div>` : ""}
+          <div>
+            <strong>Job Type:</strong>
+            <span style="padding:2px 6px; border-radius:6px; background:${tagColor}; font-size:12px; font-weight:bold;">
+              ${data.jobType || 'N/A'}
+            </span>
+           </div>
+          <div><strong>Date:</strong> ${new Date(data.timestamp?.toDate()).toLocaleString()}</div>
+          <button style="margin-top: 6px;" onclick="editManualQuote('${docId}', ${!!data.locked})" ${data.locked ? "disabled" : ""}>
+            Edit Quote
+          </button>
+          <button style="margin-left: 6px;" onclick="toggleLock('${docId}', ${!!data.locked})">
+            ${data.locked ? "Unlock" : "Lock"}
+          </button>
+        </div>
+      `;
+
+      let tag = "";
+      if (data.mockScore === "5" && !data.manualQuote) tag = "✅ Elite";
+      else if (data.mockScore === "1" || data.mockScore === "2") tag = "⚠️ Needs Review";
+      else if (data.manualQuote) tag = "🧠 Reviewed";
+
+      card.innerHTML += `<div><strong>Status:</strong> ${tag}</div>`;
 
     vaultContainer.appendChild(card);
   });
