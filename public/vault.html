@@ -109,13 +109,13 @@ trustContainer.style.background = "#fafafa";
 
 function renderTrustQuote() {
   trustContainer.innerHTML = `
-    <div style="font-weight:bold;margin-bottom:6px;">TrustQuote</div>
-    <div><strong>Difficulty:</strong> ${getDifficulty(score)}</div>
-    <div><strong>Labor Range:</strong> ${getPriceRange(score, jobType, profileSelector.value)}</div>
-    <p style="font-style: italic; margin-top: 8px;">
-      ${getQuoteSummary(score, jobType)}
-    </p>
-  `;
+<div style="font-weight:bold;margin-bottom:6px;">TrustQuote</div>
+<div><strong>Difficulty:</strong> ${getDifficulty(score)}</div>
+<div><strong>Labor Range:</strong> ${getPriceRange(score, jobType, profileSelector.value)}</div>
+<p style="font-style: italic; margin-top: 8px;">
+  ${getQuoteSummary(score, jobType)}
+</p>
+`;
 }
 
 renderTrustQuote();
