@@ -34,7 +34,8 @@
 
   <script type="module">
     const params = new URLSearchParams(window.location.search);
-     const pdfScript = document.createElement("script");
+     window.userRole = "viewer";
+    const pdfScript = document.createElement("script");
     pdfScript.src = "https://rawgit.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js";
     document.head.appendChild(pdfScript);
     const imageUrl = params.get("imgUrl");
@@ -224,8 +225,10 @@ scoreDisplay.appendChild(saveOverrideButton);
 
 function renderTrustQuote() {
   const isManual = overrideToggle.dataset.enabled === "true";
-  overrideInput.style.display = isManual ? "block" : "none";
-  saveOverrideButton.style.display = isManual ? "inline-block" : "none";
+  const isAdmin = window.userRole === "admin";
+  overrideToggle.style.display = isAdmin ? "inline-block" : "none";
+  overrideInput.style.display = (isManual && isAdmin) ? "block" : "none";
+  saveOverrideButton.style.display = (isManual && isAdmin) ? "inline-block" : "none";
 
   const selectedProfile = profileSelector.value;
   const laborRange = isManual && overrideInput.value
@@ -346,6 +349,7 @@ pdfButton.style.padding = "6px 12px";
 pdfButton.style.borderRadius = "6px";
 pdfButton.style.fontSize = "14px";
 pdfButton.style.cursor = "pointer";
+pdfButton.style.display = window.userRole === "admin" ? "inline-block" : "none";
 scoreDisplay.appendChild(pdfButton);
 
 exportButton.addEventListener("click", () => {
@@ -464,12 +468,17 @@ pdfButton.addEventListener("click", () => {
             <div><strong>Profile:</strong> ${data.profile || 'standard'}</div>
             <div><strong>Status:</strong> ${tag}</div>
             <div><strong>Date:</strong> ${new Date(data.timestamp?.toDate()).toLocaleString()}</div>
-            <button style="margin-top: 6px;" onclick="editManualQuote('${docId}', ${!!data.locked})" ${data.locked ? 'disabled' : ''}>
-              Edit Quote
-            </button>
-            <button style="margin-left: 6px;" onclick="toggleLock('${docId}', ${!!data.locked})">
-              ${data.locked ? 'Unlock' : 'Lock'}
-            </button>
+             ${window.userRole === "admin" ? `
+              <button style="margin-top: 6px;" onclick="editManualQuote('${docId}', ${!!data.locked})" ${data.locked ? 'disabled' : ''}>
+                Edit Quote
+              </button>
+              <button style="margin-left: 6px;" onclick="toggleLock('${docId}', ${!!data.locked})">
+                ${data.locked ? 'Unlock' : 'Lock'}
+              </button>
+              <button style="margin-top: 6px;" onclick="viewQuoteHistory('${docId}')">
+                📜 History
+              </button>
+            ` : ""}
           </div>
         `;
         vaultContainer.appendChild(card);
@@ -565,9 +574,18 @@ window.restoreManualQuote = async function(docId, quote) {
   .then(() => console.log("✅ Signed in manually"))
   .catch(err => console.error("❌ Sign-in failed:", err));
     
-firebase.auth().onAuthStateChanged(user => {
-      console.log("👤 Signed-in user:", user ? user.uid : "None");
-  if (user) {
+firebase.auth().onAuthStateChanged(async user => {
+  console.log("👤 Signed-in user:", user ? user.uid : "None");
+  if (!user) return;
+
+  try {
+    const roleDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+    window.userRole = roleDoc.exists ? roleDoc.data().role : "viewer";
+    console.log("🔐 Role:", window.userRole);
+    loadVaultData();
+  } catch (err) {
+    console.error("❌ Failed to fetch role:", err);
+    window.userRole = "viewer";
     loadVaultData();
   }
 });
