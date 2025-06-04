@@ -95,6 +95,8 @@
       profileSelector.value = profile;
 
       scoreDisplay.appendChild(profileSelector);
+      renderTrustquote();
+      profileSelector.addEventListener("change", renderTrustQuote);
     }
 
     const trustContainer = document.createElement("div");
