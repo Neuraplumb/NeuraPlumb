@@ -109,12 +109,7 @@ footer.textContent = "Powered by NeuraPlumb™";
 
 scoreDisplay.appendChild(footer);
 
-function getPriceRange(score, jobType, profile = "standard") {
-  const s = String(score);
-  const jt = String(jobType || "");
-  const p = String(profile);
-
-  function getQuoteSummary(score, jobType) {
+function getQuoteSummary(score, jobType) {
   const s = String(score);
   const jt = String(jobType || "");
 
@@ -128,6 +123,11 @@ function getPriceRange(score, jobType, profile = "standard") {
   return "";
 }
 
+function getPriceRange(score, jobType, profile = "standard") {
+  const s = String(score);
+  const jt = String(jobType || "");
+  const p = String(profile);
+  
   if (s === "3" && jt === "Repipe" && p === "standard") {
     return "$1,600 – $2,400";
   }
