@@ -326,7 +326,32 @@ scoreDisplay.appendChild(trustContainer);
       aiQuoteBox.style.fontSize = "14px";
       aiQuoteBox.style.fontWeight = "normal";
       aiQuoteBox.style.color = "#2a2a2a";
-      scoreDisplay.appendChild(aiQuoteBox);
+scoreDisplay.appendChild(aiQuoteBox);
+
+      const shareBtn = document.createElement("button");
+      shareBtn.textContent = "🔗 Share TrustQuote";
+      shareBtn.style.marginTop = "12px";
+      shareBtn.style.padding = "6px 12px";
+      shareBtn.style.borderRadius = "6px";
+      shareBtn.style.fontSize = "14px";
+      shareBtn.style.cursor = "pointer";
+      scoreDisplay.appendChild(shareBtn);
+
+      shareBtn.addEventListener("click", () => {
+        const base = window.location.origin + window.location.pathname;
+        const params = new URLSearchParams({ score, jobType, profile });
+        const shareLink = `${base}?${params.toString()}`;
+        navigator.clipboard.writeText(shareLink);
+        alert(`📋 Link copied:\n${shareLink}`);
+      });
+
+      const partsBox = document.createElement("div");
+      partsBox.style.marginTop = "16px";
+      partsBox.innerHTML = `
+  <h4>🧾 Parts & Labor</h4>
+  <textarea id="partsNotes" rows="3" style="width:100%;border-radius:6px;padding:8px;" placeholder="e.g. 50ft copper + 3 valves + permit pull = $380"></textarea>
+`;
+      scoreDisplay.appendChild(partsBox);
 
 renderTrustQuote();
 profileSelector.addEventListener("change", renderTrustQuote);
@@ -488,6 +513,7 @@ pdfButton.addEventListener("click", () => {
     <p><strong>Job Type:</strong> ${jobType}</p>
     <p><strong>Profile:</strong> ${selectedProfile}</p>
     <p style="margin-top: 12px; font-style: italic;">
+    <p><strong>Parts & Materials:</strong><br/>${parts}</p>
       ${getQuoteSummary(score, jobType)}
     </p>
     <hr />
