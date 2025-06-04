@@ -97,6 +97,15 @@ trustContainer.innerHTML = `
 
 scoreDisplay.appendChild(trustContainer);
 
+const footer = document.createElement("div");
+footer.style.marginTop = "16px";
+footer.style.fontSize = "12px";
+footer.style.color = "#888";
+footer.style.textAlign = "right";
+footer.textContent = "Powered by NeuraPlumb™";
+
+trustContainer.appendChild(footer);
+
 function getPriceRange(score, jobType, profile = "standard") {
   const s = String(score);
   const jt = String(jobType || "");
