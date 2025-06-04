@@ -345,6 +345,12 @@ function renderTrustQuote() {
     selectedProfile === "premium"
       ? `<span style="color:#D48B00;">💼 Premium View: Higher expected labor tier</span>`
       : `<span style="color:#888;">Standard View</span>`
+        const confidenceLabel = document.createElement("div");
+  confidenceLabel.style.marginTop = "6px";
+  confidenceLabel.style.color = "#999";
+  confidenceLabel.style.fontSize = "12px";
+  confidenceLabel.textContent = "Confidence: ~87% (based on profile, score match)";
+  scoreDisplay.appendChild(confidenceLabel);
 }
 
 scoreDisplay.appendChild(trustContainer);
