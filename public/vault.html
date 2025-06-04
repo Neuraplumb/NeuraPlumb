@@ -234,6 +234,12 @@ function renderTrustQuote() {
   const laborRange = isManual && overrideInput.value
     ? overrideInput.value
     : getPriceRange(score, jobType, selectedProfile);
+    const aiSuggestedQuote = getPriceRange(score, jobType, profileSelector.value);
+  aiQuoteBox.innerHTML = `
+    <span style="color:#2e7d32;">💡 AI Suggested Quote:</span>
+    <strong>${aiSuggestedQuote}</strong>
+    <span style="color:#888;">(based on score, job type, and profile)</span>
+  `;
   trustContainer.innerHTML = `
    <div style="font-weight:bold;margin-bottom:6px;">TrustQuote</div>
   <div><strong>Difficulty:</strong> ${getDifficulty(score)}</div>
@@ -253,6 +259,13 @@ function renderTrustQuote() {
 scoreDisplay.appendChild(trustContainer);
 renderTrustQuote();
 profileSelector.addEventListener("change", renderTrustQuote);
+
+      const aiQuoteBox = document.createElement("div");
+      aiQuoteBox.style.marginTop = "8px";
+      aiQuoteBox.style.fontSize = "14px";
+      aiQuoteBox.style.fontWeight = "normal";
+      aiQuoteBox.style.color = "#2a2a2a";
+      scoreDisplay.appendChild(aiQuoteBox);
 
 // === Add Explain Button Below TrustQuote ===
       const explainButton = document.createElement("button");
