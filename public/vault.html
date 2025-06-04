@@ -371,17 +371,21 @@ function renderTrustQuote() {
   confidenceLabel.style.color = "#999";
   confidenceLabel.style.fontSize = "12px";
   confidenceLabel.textContent = "Confidence: ~87% (based on profile, score match)";
-  scoreDisplay.appendChild(confidenceLabel);
+  trustGroup.appendChild(confidenceLabel);
 }
 
 scoreDisplay.appendChild(trustContainer);
+
+const trustGroup = document.createElement("div");
+      trustGroup.style.marginTop = "12px";
+      trustContainer.appendChild(trustGroup);
 
       const aiQuoteBox = document.createElement("div");
       aiQuoteBox.style.marginTop = "8px";
       aiQuoteBox.style.fontSize = "14px";
       aiQuoteBox.style.fontWeight = "normal";
       aiQuoteBox.style.color = "#2a2a2a";
-scoreDisplay.appendChild(aiQuoteBox);
+trustGroup.appendChild(aiQuoteBox);
 
       const shareBtn = document.createElement("button");
       shareBtn.textContent = "🔗 Share TrustQuote";
@@ -390,7 +394,7 @@ scoreDisplay.appendChild(aiQuoteBox);
       shareBtn.style.borderRadius = "6px";
       shareBtn.style.fontSize = "14px";
       shareBtn.style.cursor = "pointer";
-      scoreDisplay.appendChild(shareBtn);
+      trustGroup.appendChild(shareBtn);
 
       shareBtn.addEventListener("click", () => {
         const base = window.location.origin + window.location.pathname;
@@ -406,7 +410,7 @@ scoreDisplay.appendChild(aiQuoteBox);
   <h4>🧾 Parts & Labor</h4>
   <textarea id="partsNotes" rows="3" style="width:100%;border-radius:6px;padding:8px;" placeholder="e.g. 50ft copper + 3 valves + permit pull = $380"></textarea>
 `;
-      scoreDisplay.appendChild(partsBox);
+      trustGroup.appendChild(partsBox);
 
 renderTrustQuote();
 profileSelector.addEventListener("change", renderTrustQuote);
@@ -438,7 +442,7 @@ profileSelector.addEventListener("change", renderTrustQuote);
       explainButton.style.borderRadius = "6px";
       explainButton.style.fontSize = "14px";
       explainButton.style.cursor = "pointer";
-      scoreDisplay.appendChild(explainButton);
+      trustGroup.appendChild(explanationBox);
 
       const explanationBox = document.createElement("div");
       explanationBox.style.marginTop = "12px";
@@ -448,7 +452,7 @@ profileSelector.addEventListener("change", renderTrustQuote);
       explanationBox.style.borderRadius = "6px";
       explanationBox.style.fontSize = "14px";
       explanationBox.style.display = "none";
-      scoreDisplay.appendChild(explanationBox);
+      trustGroup.appendChild(explanationBox);
 
       // === Explanation Logic ===
       explainButton.addEventListener("click", () => {
@@ -729,9 +733,10 @@ window.viewQuoteHistory = async function(docId) {
   const container = document.createElement("div");
   container.style.padding = "12px";
 
-  versions.forEach((v, index) => {
-    
-    const q = v.quote || "Blank";
+    versions.forEach((v, index) => {
+
+     const q = v.quote || "Blank";
+     const ts = v.timestamp?.toDate?.().toLocaleString?.() || "Unknown time";
 
     const line = document.createElement("div");
     line.innerHTML = `
@@ -758,6 +763,7 @@ window.restoreManualQuote = async function(docId, quote) {
 
   alert("✅ Restored.");
   loadVaultData(); // Refresh vault display
+  renderTrustQuote();
 };
     firebase.auth().signInWithEmailAndPassword("jaymz6435@gmail.com", "Elara572025!")
   .then(() => console.log("✅ Signed in manually"))
