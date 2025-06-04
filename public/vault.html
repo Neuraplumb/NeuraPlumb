@@ -70,6 +70,16 @@
     `;
     document.body.insertBefore(filterBar, document.getElementById("vault"));
 
+    const dateFilter = document.createElement("select");
+    dateFilter.innerHTML = `
+      <option value="">All Dates</option>
+      <option value="7">Last 7 Days</option>
+      <option value="30">Last 30 Days</option>
+      <option value="month">This Month</option>
+    `;
+    dateFilter.id = "dateFilter";
+    document.getElementById("vault").before(dateFilter);
+
     const metricsBar = document.createElement("div");
     metricsBar.style.marginTop = "16px";
     metricsBar.style.fontSize = "13px";
@@ -591,6 +601,13 @@ pdfButton.addEventListener("click", () => {
       const jobFilter = document.getElementById('jobFilter')?.value || '';
       const profileFilter = document.getElementById('profileFilter')?.value || '';
       const tagFilter = document.getElementById('tagFilter')?.value || '';
+      const dateRange = document.getElementById('dateFilter')?.value;
+      const now = new Date();
+      let cutoff;
+
+      if (dateRange === '7') cutoff = new Date(now - 7 * 86400000);
+      if (dateRange === '30') cutoff = new Date(now - 30 * 86400000);
+      if (dateRange === 'month') cutoff = new Date(now.getFullYear(), now.getMonth(), 1);
 
       const querySnapshot = await firebase.firestore()
         .collection('uploads')
@@ -601,6 +618,8 @@ pdfButton.addEventListener("click", () => {
       querySnapshot.forEach(doc => {
         const data = doc.data();
         const docId = doc.id;
+
+        if (cutoff && data.timestamp?.toDate?.() < cutoff) return;
 
         if (jobFilter && data.jobType !== jobFilter) return;
         if (profileFilter && data.profile !== profileFilter) return;
@@ -762,7 +781,7 @@ firebase.auth().onAuthStateChanged(async user => {
   }
 });
     // === Auto-refresh filters on change ===
-  ["jobFilter", "profileFilter", "tagFilter"].forEach(id => {
+  ["jobFilter", "profileFilter", "tagFilter", "dateFilter"].forEach(id => {
     document.getElementById(id)?.addEventListener("change", loadVaultData);
   });
   function getBadgeColor(score) {
