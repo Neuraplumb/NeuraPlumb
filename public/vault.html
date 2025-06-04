@@ -79,6 +79,34 @@
     metricsBar.id = "metricsBar";
     document.body.insertBefore(metricsBar, document.getElementById("vault"));
 
+    if (window.userRole === "admin") {
+      const configPanel = document.createElement("textarea");
+      configPanel.style.marginTop = "16px";
+      configPanel.style.width = "100%";
+      configPanel.style.height = "200px";
+      configPanel.style.borderRadius = "8px";
+      configPanel.style.padding = "8px";
+      configPanel.value = JSON.stringify(NeuraConfig, null, 2);
+      configPanel.placeholder = "Edit NeuraConfig here";
+
+      const applyBtn = document.createElement("button");
+      applyBtn.textContent = "💾 Apply Config";
+      applyBtn.style.marginTop = "8px";
+      applyBtn.onclick = () => {
+        try {
+          const parsed = JSON.parse(configPanel.value);
+          Object.assign(NeuraConfig, parsed);
+          alert("✅ Config applied.");
+          renderTrustQuote();
+        } catch (e) {
+          alert("❌ Invalid JSON");
+        }
+      };
+
+      metricsBar.appendChild(configPanel);
+      metricsBar.appendChild(applyBtn);
+    }
+
     async function showMetrics(user) {
       if (window.userRole !== "admin") return;
 
