@@ -114,14 +114,29 @@ overrideToggle.dataset.enabled = "false";
 
 scoreDisplay.appendChild(overrideToggle);
 
+const overrideInput = document.createElement("input");
+overrideInput.id = "overrideInput";
+overrideInput.type = "text";
+overrideInput.placeholder = "e.g. $1,500 – $2,600";
+overrideInput.style.marginTop = "8px";
+overrideInput.style.padding = "6px 12px";
+overrideInput.style.borderRadius = "6px";
+overrideInput.style.fontSize = "14px";
+overrideInput.style.display = "none";
+
+scoreDisplay.appendChild(overrideInput);
+overrideInput.addEventListener("input", renderTrustQuote);
+
 function renderTrustQuote() {
   const isManual = overrideToggle.dataset.enabled === "true";
+  overrideInput.style.display = isManual ? "block" : "none";
+  const laborRange = isManual && overrideInput.value
+    ? overrideInput.value
+    : getPriceRange(score, jobType, profileSelector.value);
   trustContainer.innerHTML = `
    <div style="font-weight:bold;margin-bottom:6px;">TrustQuote</div>
   <div><strong>Difficulty:</strong> ${getDifficulty(score)}</div>
-  <div><strong>Labor Range:</strong> ${
-    isManual ? "Custom Range (e.g. $1,400 – $2,600)" : getPriceRange(score, jobType, profileSelector.value)
-  }</div>
+  <div><strong>Labor Range:</strong> ${laborRange}</div>
   <p style="font-style: italic; margin-top: 8px;">
     ${getQuoteSummary(score, jobType)}
   </p>
@@ -136,6 +151,7 @@ overrideToggle.addEventListener("click", () => {
   const current = overrideToggle.dataset.enabled === "true";
   overrideToggle.dataset.enabled = (!current).toString();
   overrideToggle.textContent = current ? "Enable Manual Override" : "Disable Manual Override";
+  overrideInput.style.display = overrideToggle.dataset.enabled === "true" ? "block" : "none";
   renderTrustQuote();
 });
 
