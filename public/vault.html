@@ -103,20 +103,40 @@ trustContainer.style.borderRadius = "8px";
 trustContainer.style.maxWidth = "300px";
 trustContainer.style.background = "#fafafa";
 
+const overrideToggle = document.createElement("button");
+overrideToggle.textContent = "Enable Manual Override";
+overrideToggle.style.marginTop = "16px";
+overrideToggle.style.padding = "6px 12px";
+overrideToggle.style.borderRadius = "6px";
+overrideToggle.style.fontSize = "14px";
+overrideToggle.style.cursor = "pointer";
+
+scoreDisplay.appendChild(overrideToggle);
+
 function renderTrustQuote() {
+  const isManual = overrideToggle.dataset.enabled === "true";
   trustContainer.innerHTML = `
-    <div style="font-weight:bold;margin-bottom:6px;">TrustQuote</div>
-    <div><strong>Difficulty:</strong> ${getDifficulty(score)}</div>
-    <div><strong>Labor Range:</strong> ${getPriceRange(score, jobType, profileSelector.value)}</div>
-    <p style="font-style: italic; margin-top: 8px;">
-      ${getQuoteSummary(score, jobType)}
-    </p>
+   <div style="font-weight:bold;margin-bottom:6px;">TrustQuote</div>
+  <div><strong>Difficulty:</strong> ${getDifficulty(score)}</div>
+  <div><strong>Labor Range:</strong> ${
+    isManual ? "Custom Range (e.g. $1,400 – $2,600)" : getPriceRange(score, jobType, profileSelector.value)
+  }</div>
+  <p style="font-style: italic; margin-top: 8px;">
+    ${getQuoteSummary(score, jobType)}
+  </p>
   `;
 }
 
 scoreDisplay.appendChild(trustContainer);
 renderTrustQuote();
 profileSelector.addEventListener("change", renderTrustQuote);
+
+overrideToggle.addEventListener("click", () => {
+  const current = overrideToggle.dataset.enabled === "true";
+  overrideToggle.dataset.enabled = !current;
+  overrideToggle.textContent = current ? "Enable Manual Override" : "Disable Manual Override";
+  renderTrustQuote();
+});
 
 const footer = document.createElement("div");
 footer.style.marginTop = "16px";
