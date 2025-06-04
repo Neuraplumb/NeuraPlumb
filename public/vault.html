@@ -196,6 +196,37 @@ footer.textContent = "Powered by NeuraPlumb™";
 
 scoreDisplay.appendChild(footer);
 
+const exportButton = document.createElement("button");
+exportButton.textContent = "Export Quote";
+exportButton.style.marginTop = "16px";
+exportButton.style.padding = "6px 12px";
+exportButton.style.borderRadius = "6px";
+exportButton.style.fontSize = "14px";
+exportButton.style.cursor = "pointer";
+scoreDisplay.appendChild(exportButton);
+
+exportButton.addEventListener("click", () => {
+  const content = `
+    🛠️ NeuraPlumb TrustQuote
+    --------------------------
+    Score: ${score}
+    Difficulty: ${getDifficulty(score)}
+    Labor Range: ${overrideToggle.dataset.enabled === "true" && overrideInput.value
+      ? overrideInput.value
+      : getPriceRange(score, jobType, profileSelector.value)}
+    Job Type: ${jobType || 'N/A'}
+    Profile: ${profileSelector.value}
+    --------------------------
+    ${getQuoteSummary(score, jobType)}
+  `;
+  const blob = new Blob([content], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "TrustQuote.txt";
+  a.click();
+});
+
 }
 
 function getQuoteSummary(score, jobType) {
