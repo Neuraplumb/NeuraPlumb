@@ -488,13 +488,28 @@ window.editManualQuote = async function(docId, isLocked) {
   if (isLocked) return alert("Quote is locked.");
   const newQuote = prompt("Enter new manual quote:");
   if (newQuote === null) return;
-  await firebase.firestore().collection('uploads').doc(docId).update({
+  
+  const docRef = firebase.firestore().collection('uploads').doc(docId);
+  const docSnap = await docRef.get();
+  const oldData = docSnap.data();
+
+  const prevQuote = oldData.manualQuote || null;
+  const prevVersions = oldData.versions || [];
+
+  const versionEntry = {
+    quote: prevQuote,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  await docRef.update({
     manualQuote: newQuote,
-    lastEdited: firebase.firestore.FieldValue.serverTimestamp()
+    lastEdited: firebase.firestore.FieldValue.serverTimestamp(),
+    versions: [...prevVersions, versionEntry]
   });
+
   const quoteSpan = document.getElementById(`quote-${docId}`);
   if (quoteSpan) quoteSpan.textContent = newQuote;
-  alert("✅ Manual quote updated.");
+  alert("✅ Manual quote updated with history.");
 };
 
 window.toggleLock = async function(docId, currentState) {
@@ -503,6 +518,23 @@ window.toggleLock = async function(docId, currentState) {
   });
   alert(currentState ? "🔓 Unlocked" : "🔒 Locked");
   loadVaultData();
+};
+
+window.viewQuoteHistory = async function(docId) {
+  const docRef = firebase.firestore().collection('uploads').doc(docId);
+  const docSnap = await docRef.get();
+  const data = docSnap.data();
+  const versions = data.versions || [];
+
+  if (versions.length === 0) return alert("No history available.");
+
+  let historyText = "Past Versions:\n";
+  for (const v of versions) {
+    const ts = v.timestamp?.toDate?.().toLocaleString?.() || "Unknown time";
+    historyText += `• ${v.quote || "Blank"} — ${ts}\n`;
+  }
+
+  alert(historyText);
 };
     firebase.auth().signInWithEmailAndPassword("jaymz6435@gmail.com", "Elara572025!")
   .then(() => console.log("✅ Signed in manually"))
