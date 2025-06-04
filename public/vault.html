@@ -79,6 +79,22 @@
       badge.style.marginTop = "20px";
       badge.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
       scoreDisplay.appendChild(badge);
+      const profileSelector = document.createElement("select");
+      profileSelector.style.marginTop = "16px";
+      profileSelector.style.padding = "6px";
+      profileSelector.style.borderRadius = "6px";
+      profileSelector.style.fontSize = "14px";
+
+      ["standard", "premium"].forEach(option => {
+        const opt = document.createElement("option");
+        opt.value = option;
+        opt.textContent = option.charAt(0).toUpperCase() + option.slice(1);
+        profileSelector.appendChild(opt);
+      });
+
+      profileSelector.value = profile;
+      scoreDisplay.appendChild(profileSelector);
+      
       const trustContainer = document.createElement("div");
 trustContainer.style.marginTop = "12px";
 trustContainer.style.padding = "12px";
