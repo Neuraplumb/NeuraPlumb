@@ -134,7 +134,7 @@ profileSelector.addEventListener("change", renderTrustQuote);
 
 overrideToggle.addEventListener("click", () => {
   const current = overrideToggle.dataset.enabled === "true";
-  overrideToggle.dataset.enabled = !current;
+  overrideToggle.dataset.enabled = (!current).toString();
   overrideToggle.textContent = current ? "Enable Manual Override" : "Disable Manual Override";
   renderTrustQuote();
 });
