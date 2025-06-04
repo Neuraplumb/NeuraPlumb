@@ -213,6 +213,37 @@ overrideInput.style.display = "none";
 scoreDisplay.appendChild(overrideInput);
 overrideInput.addEventListener("input", renderTrustQuote);
 
+const templateSelect = document.createElement("select");
+      templateSelect.style.marginTop = "8px";
+      templateSelect.style.padding = "6px";
+      templateSelect.style.borderRadius = "6px";
+      templateSelect.style.fontSize = "13px";
+
+      const templates = {
+        "": "Insert Saved Quote...",
+        "$1,500 – $2,300": "Standard Repipe",
+        "$2,800 – $4,000": "Full Sewer Replacement",
+        "$600 – $950": "Water Heater Swap",
+        "$1,200 – $1,800": "Drain Line Replacement"
+      };
+
+      for (const value in templates) {
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = templates[value];
+        templateSelect.appendChild(opt);
+      }
+
+      templateSelect.addEventListener("change", () => {
+        if (templateSelect.value) {
+          overrideToggle.dataset.enabled = "true";
+          overrideInput.value = templateSelect.value;
+          renderTrustQuote();
+        }
+      });
+
+      scoreDisplay.appendChild(templateSelect);
+
 const saveOverrideButton = document.createElement("button");
 saveOverrideButton.textContent = "Save Override to Vault";
 saveOverrideButton.style.marginTop = "8px";
@@ -266,6 +297,25 @@ profileSelector.addEventListener("change", renderTrustQuote);
       aiQuoteBox.style.fontWeight = "normal";
       aiQuoteBox.style.color = "#2a2a2a";
       scoreDisplay.appendChild(aiQuoteBox);
+
+      const acceptButton = document.createElement("button");
+      acceptButton.textContent = "✅ Accept AI Quote";
+      acceptButton.style.marginTop = "8px";
+      acceptButton.style.marginLeft = "6px";
+      acceptButton.style.padding = "6px 12px";
+      acceptButton.style.borderRadius = "6px";
+      acceptButton.style.fontSize = "14px";
+      acceptButton.style.cursor = "pointer";
+      acceptButton.style.backgroundColor = "#e0f2f1";
+      acceptButton.style.border = "1px solid #999";
+
+      scoreDisplay.appendChild(acceptButton);
+
+      acceptButton.addEventListener("click", () => {
+        overrideToggle.dataset.enabled = "true";
+        overrideInput.value = getPriceRange(score, jobType, profileSelector.value);
+        renderTrustQuote();
+      });
 
 // === Add Explain Button Below TrustQuote ===
       const explainButton = document.createElement("button");
