@@ -93,6 +93,9 @@ trustContainer.innerHTML = `
   <div style="font-weight:bold;margin-bottom:6px;">TrustQuote</div>
   <div><strong>Difficulty:</strong> ${getDifficulty(score)}</div>
   <div><strong>Labor Range:</strong> ${getPriceRange(score, jobType, profile)}</div>
+  <p style="font-style: italic; margin-top: 8px;">
+    ${getQuoteSummary(score, jobType)}
+  </p>
 `;
 
 scoreDisplay.appendChild(trustContainer);
@@ -110,6 +113,20 @@ function getPriceRange(score, jobType, profile = "standard") {
   const s = String(score);
   const jt = String(jobType || "");
   const p = String(profile);
+
+  function getQuoteSummary(score, jobType) {
+  const s = String(score);
+  const jt = String(jobType || "");
+
+  if (s === "1") return "This job may involve severe failure risks and should be reviewed immediately.";
+  if (s === "2") return "This install falls below expected standards. Review is recommended.";
+  if (s === "3" && jt === "Repipe") return "Repiping jobs at this difficulty often involve trenching, rerouting, and permit compliance.";
+  if (s === "3") return "This job has moderate complexity with some risk factors.";
+  if (s === "4") return "Above average quality with minimal labor complexity.";
+  if (s === "5") return "This install meets elite standards. Minimal labor expected.";
+
+  return "";
+}
 
   if (s === "3" && jt === "Repipe" && p === "standard") {
     return "$1,600 – $2,400";
