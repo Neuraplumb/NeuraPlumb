@@ -19,7 +19,7 @@
          data-score="3" 
          data-jobtype="Repipe" 
          data-profile="premium" 
-         data-docid="docid1"
+         data-docid="2vgl10FZo1KPfal6PGtb"
          style="margin-bottom:24px;padding:16px;border:1px solid #eee;border-radius:8px;">
       <div><strong>Job:</strong> Repipe</div>
       <div><strong>Score:</strong> 3</div>
@@ -28,15 +28,18 @@
     </div>
     <div class="vault-card" 
          data-score="5" 
-         data-jobtype="Drain Cleaning" 
+         data-jobtype="Water Heater" 
          data-profile="standard" 
-         data-docid="docid2"
+         data-docid="sSUWFTZYO91Qrn6c9dmF"
          style="margin-bottom:24px;padding:16px;border:1px solid #eee;border-radius:8px;">
-      <div><strong>Job:</strong> Drain Cleaning</div>
+      <div><strong>Job:</strong> Water Heater</div>
       <div><strong>Score:</strong> 5</div>
       <div><strong>Profile:</strong> standard</div>
       <div class="trustquote" style="margin-top:12px;"></div>
     </div>
+    <!-- Add more .vault-card blocks as needed, each with data-docid -->
+  </div>
+
     <!-- Add more .vault-card blocks as needed, each with data-docid -->
   </div>
 
@@ -121,6 +124,7 @@
 
       try {
         const explainQuote = httpsCallable(functions, "explainQuote");
+        // Pass docId in the call
         const res = await explainQuote({ score, jobType, profile, docId });
         const explanation = res.data.explanation || "No explanation returned.";
         trustQuoteCache[cacheKey] = explanation;
