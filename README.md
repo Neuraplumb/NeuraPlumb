@@ -11,3 +11,5 @@ NeuraPlumb is an AI-powered diagnostic platform that brings trust and transparen
 ---
 
 ### 💬 Built with Elara (OpenAI GPT-4), Firebase, and raw grit.
+
+This repo now includes a `functions-ai` package that exposes an HTTPS endpoint powered by OpenAI's GPT‑4o model. Use it to experiment with AI-assisted workflows.

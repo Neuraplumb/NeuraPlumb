@@ -1,0 +1,7 @@
+[
+  {
+    "origin": ["https://neuraplumb.vercel.app"],
+    "method": ["GET", "POST", "PUT"],
+    "maxAgeSeconds": 3600
+  }
+]

@@ -15,19 +15,29 @@
   <h2>Your Vault</h2>
   <div id="vault">
     <!-- Example vault cards (add as many as you need) -->
-    <div class="vault-card" data-score="3" data-jobtype="Repipe" data-profile="premium" style="margin-bottom:24px;padding:16px;border:1px solid #eee;border-radius:8px;">
+    <div class="vault-card" 
+         data-score="3" 
+         data-jobtype="Repipe" 
+         data-profile="premium" 
+         data-docid="docid1"
+         style="margin-bottom:24px;padding:16px;border:1px solid #eee;border-radius:8px;">
       <div><strong>Job:</strong> Repipe</div>
       <div><strong>Score:</strong> 3</div>
       <div><strong>Profile:</strong> premium</div>
       <div class="trustquote" style="margin-top:12px;"></div>
     </div>
-    <div class="vault-card" data-score="5" data-jobtype="Drain Cleaning" data-profile="standard" style="margin-bottom:24px;padding:16px;border:1px solid #eee;border-radius:8px;">
+    <div class="vault-card" 
+         data-score="5" 
+         data-jobtype="Drain Cleaning" 
+         data-profile="standard" 
+         data-docid="docid2"
+         style="margin-bottom:24px;padding:16px;border:1px solid #eee;border-radius:8px;">
       <div><strong>Job:</strong> Drain Cleaning</div>
       <div><strong>Score:</strong> 5</div>
       <div><strong>Profile:</strong> standard</div>
       <div class="trustquote" style="margin-top:12px;"></div>
     </div>
-    <!-- Add more .vault-card blocks as needed -->
+    <!-- Add more .vault-card blocks as needed, each with data-docid -->
   </div>
 
   <script type="module">
@@ -83,18 +93,19 @@
 
     // TrustQuote logic for all vault cards
     const trustQuoteCache = {};
-    function getCacheKey(score, jobType, profile) {
-      return `${score}|${jobType}|${profile}`;
+    function getCacheKey(score, jobType, profile, docId) {
+      return `${score}|${jobType}|${profile}|${docId}`;
     }
 
     document.querySelectorAll('.vault-card').forEach(async (card) => {
       const score = card.dataset.score;
       const jobType = card.dataset.jobtype;
       const profile = card.dataset.profile;
+      const docId = card.dataset.docid;
       const trustDiv = card.querySelector('.trustquote');
-      if (!trustDiv) return;
+      if (!trustDiv || !docId) return;
 
-      const cacheKey = getCacheKey(score, jobType, profile);
+      const cacheKey = getCacheKey(score, jobType, profile, docId);
 
       if (trustQuoteCache[cacheKey]) {
         trustDiv.innerHTML = `
@@ -110,7 +121,7 @@
 
       try {
         const explainQuote = httpsCallable(functions, "explainQuote");
-        const res = await explainQuote({ score, jobType, profile });
+        const res = await explainQuote({ score, jobType, profile, docId });
         const explanation = res.data.explanation || "No explanation returned.";
         trustQuoteCache[cacheKey] = explanation;
         trustDiv.innerHTML = `

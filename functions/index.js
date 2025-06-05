@@ -17,17 +17,29 @@ const openai = new OpenAI({
   apiKey: functions.config().openai.key,
 });
 
-// ✅ NeuraPlumb – TrustQuote AI Function (with role-aware prompt)
+// ✅ NeuraPlumb – TrustQuote AI Function (with role-aware prompt and Firestore caching)
 exports.explainQuote = functions.https.onCall(async (data, context) => {
-  const { score, jobType, profile } = data;
+  const { score, jobType, profile, docId } = data;
 
-  // Log input before OpenAI request
-  console.log("🔍 TrustQuote input received:", { score, jobType, profile });
+  console.log("🔍 TrustQuote input:", { score, jobType, profile, docId });
 
-  // Role-aware prompt logic
+  if (!docId) {
+    throw new functions.https.HttpsError("invalid-argument", "Missing Firestore docId.");
+  }
+
+  const docRef = db.collection("vault").doc(docId);
+  const docSnap = await docRef.get();
+
+  // ✅ 1. Return cached explanation if it exists
+  if (docSnap.exists && docSnap.data().trustQuote) {
+    console.log("⚡️ Returning cached TrustQuote");
+    return { explanation: docSnap.data().trustQuote };
+  }
+
+  // 🧠 2. Generate new explanation from GPT-4o
   let prompt = "";
 
-  if (profile === "plumber") {
+  if (profile === "plumber" || profile === "premium") {
     prompt = `
 You are NeuraPlumb AI, a field-trusted assistant built for licensed plumbers.
 
@@ -39,13 +51,13 @@ Write a concise, pro-facing summary of expected job complexity. Skip homeowner l
 `;
   } else {
     prompt = `
-You are NeuraPlumb AI, a field-trusted diagnostic assistant.
+You are NeuraPlumb AI, a trusted diagnostic assistant.
 
 Job context:
 - Score: ${score}
 - Job Type: ${jobType}
 
-Explain the expected labor complexity and price range clearly for a homeowner. Use one paragraph. Be helpful, not robotic.
+Write a one-paragraph explanation for a homeowner. Focus on expected labor, time, and why this score matters. Use helpful, friendly language. No jargon.
 `;
   }
 
@@ -55,12 +67,14 @@ Explain the expected labor complexity and price range clearly for a homeowner. U
     temperature: 0.7,
   });
 
-  // Log response before returning
-  console.log("✅ GPT-4o response:", response);
+  const explanation = response.choices?.[0]?.message?.content || "AI response missing or malformed.";
 
-  return {
-    explanation: response.choices?.[0]?.message?.content || "AI response missing or malformed.",
-  };
+  // 💾 3. Save to Firestore
+  await docRef.update({ trustQuote: explanation });
+
+  console.log("✅ TrustQuote saved to Firestore");
+
+  return { explanation };
 });
 
 // ✅ NeuraPlumb – Image Upload Endpoint
@@ -129,4 +143,3 @@ exports.uploadImage = functions.https.onRequest((req, res) => {
 
   busboy.end(req.rawBody);
 });
-
