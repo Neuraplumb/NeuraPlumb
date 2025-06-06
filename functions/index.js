@@ -1,6 +1,5 @@
 process.env.FUNCTIONS_EMULATOR = false;
 
-// What does this function do?  
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { Busboy } = require("busboy"); // ✅ FIXED IMPORT
@@ -123,65 +122,66 @@ exports.uploadImage = functions
         fields[fieldname] = val;
       });
 
-      busboy.on("finish", async () => {
-        try {
-          // ✅ Add upload guard here
-          if (!upload?.file || !upload?.name) {
-            throw new Error("Upload metadata is missing");
-          }
+busboy.on("finish", async () => {
+  try {
+    // ✅ Add upload guard here
+    if (!upload?.file || !upload?.name) {
+      throw new Error("Upload metadata is missing");
+    }
 
-          const destination = `uploads/${Date.now()}-${upload.name}`;
-          console.log("🧠 Upload path:", destination);
+    const destination = `uploads/${Date.now()}-${upload.name}`;
+    console.log("🧠 Upload path:", destination);
 
-          await bucket.upload(upload.file, {
-            destination,
-            metadata: {
-              contentType: upload.type,
-              metadata: {
-                firebaseStorageDownloadTokens: uuidv4(),
-              },
-            },
-          });
+    await bucket.upload(upload.file, {
+      destination,
+      metadata: {
+        contentType: upload.type,
+        metadata: {
+          firebaseStorageDownloadTokens: uuidv4(),
+        },
+      },
+    });
 
-          const fixedUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(destination)}?alt=media`;
-          const mockScore = Math.floor(Math.random() * 5) + 1;
+    const fixedUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(destination)}?alt=media`;
+    const mockScore = Math.floor(Math.random() * 5) + 1;
 
-          const docId = `${Date.now()}`;
-          await db.collection("evaluations").doc(docId).set({
-            fileName: upload.name,
-            storagePath: destination,
-            imageUrl: fixedUrl,
-            timestamp: new Date(),
-            mockScore,
-          });
+    const docId = `${Date.now()}`;
+    await db.collection("evaluations").doc(docId).set({
+      fileName: upload.name,
+      storagePath: destination,
+      imageUrl: fixedUrl,
+      timestamp: new Date(),
+      mockScore,
+    });
 
-          res.set("Access-Control-Allow-Origin", "*");
-          res.set("Access-Control-Allow-Headers", "Content-Type");
-          res.set("Access-Control-Allow-Methods", "POST");
-          return res.status(200).json({
-          // Add Firestore write to log jobType and imageURL wtf
-          await db.collection("uploads").add({
-  jobType: "testJobType",
-  imageUrl: fixedUrl,
-  timestamp: new Date(),
+    // ✅ Optional metadata log (cleaned and safe)
+    await db.collection("uploads").add({
+      jobType: "testJobType",
+      imageUrl: fixedUrl,
+      timestamp: new Date(),
+    });
+
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    res.set("Access-Control-Allow-Methods", "POST");
+    return res.status(200).json({
+      message: "Upload complete",
+      file: destination,
+      imageUrl: fixedUrl,
+      firestoreDoc: docId,
+      score: mockScore,
+    });
+  } catch (err) {
+    console.error("🚨 Upload failed inside busboy finish:", err);
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    res.set("Access-Control-Allow-Methods", "POST");
+    return res.status(500).json({
+      error: "🔥 Upload failed",
+      details: err.message,
+    });
+  }
 });
-            message: "Upload complete",
-            file: destination,
-            imageUrl: fixedUrl,
-            firestoreDoc: docId,
-            score: mockScore,
-          });
-        } catch (err) {
-          console.error("🚨 Upload failed inside busboy finish:", err);
-          res.set("Access-Control-Allow-Origin", "*");
-          res.set("Access-Control-Allow-Headers", "Content-Type");
-          res.set("Access-Control-Allow-Methods", "POST");
-          return res.status(500).json({
-            error: "🔥 Upload failed",
-            details: err.message,
-          });
-        }
-      });
 
       // Debug and guard for rawBody
       console.log("🧪 typeof req.rawBody =", typeof req.rawBody);
