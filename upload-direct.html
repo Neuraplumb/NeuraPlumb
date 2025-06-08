@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Upload to NeuraPlumb</title>
+</head>
+<body>
+  <h1>Upload Photo to Cloud</h1>
+  <input type="file" id="fileInput" />
+  <button onclick="upload()">Upload</button>
+
+  <script>
+    async function upload() {
+      const file = document.getElementById('fileInput').files[0];
+      if (!file) {
+        alert('No file selected');
+        return;
+      }
+
+      try {
+        // Step 1: Fetch signed URL
+        const res = await fetch('https://us-central1-neuraplumb-temp.cloudfunctions.net/getUploadUrl', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contentType: file.type,
+            filename: file.name
+          })
+        });
+
+        const data = await res.json();
+        const signedUrl = data.url;
+        if (!signedUrl) throw new Error('Signed URL not received');
+
+        // Step 2: Upload file to signed URL
+        const uploadRes = await fetch(signedUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': file.type || 'application/octet-stream'
+          },
+          body: file
+        });
+
+        if (!uploadRes.ok) {
+          throw new Error(`Upload failed: ${uploadRes.status}`);
+        }
+
+        alert('✅ Upload successful!');
+      } catch (err) {
+        alert(`❌ Upload failed: ${err.message}`);
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
+
