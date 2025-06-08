@@ -2,50 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NeuraPlumb Control Panel</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f4f8;
-      text-align: center;
-      padding: 60px 20px;
-    }
-    h1 {
-      font-size: 28px;
-      margin-bottom: 30px;
-    }
-    a {
-      display: inline-block;
-      margin: 12px;
-      padding: 14px 24px;
-      background: #0070f3;
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    a:hover {
-      background: #005ac1;
-    }
-    footer {
-      margin-top: 60px;
-      font-size: 13px;
-      color: #777;
-    }
-  </style>
+  <title>NeuraPlumb Uploader (SDK)</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
-  <h1>NeuraPlumb Dev Control Panel</h1>
+  <h1>Upload Photo to NeuraPlumb</h1>
+  <input type="file" id="fileInput" />
+  <button onclick="upload()">Upload</button>
 
-  <a href="upload-test.html">📤 Upload Test</a>
-  <a href="dashboard.html">📊 Dashboard</a>
-  <a href="vault.html">🔒 Vault</a>
-  <a href="quotes.html">📄 Quotes Viewer</a>
+  <script>
+    const firebaseConfig = {
+      apiKey: "REDACTED_FOR_DEPLOYMENT",
+      authDomain: "neuraplumb-temp.firebaseapp.com",
+      projectId: "neuraplumb-temp",
+      storageBucket: "neuraplumb-temp.appspot.com",
+      messagingSenderId: "496029226738",
+      appId: "1:496029226738:web:f837e91b9df82ad78b1b9b"
+    };
 
-  <footer>
-    Built by James S. Kim — NeuraPlumb v.1  
-  </footer>
+    firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+
+    firebase.auth().signInAnonymously()
+      .then(() => console.log("✅ Anonymous auth success"))
+      .catch((err) => console.error("❌ Auth failed:", err));
+
+    async function upload() {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) return alert("❌ No file selected.");
+
+      const ref = storage.ref().child(`uploads/${file.name}`);
+
+      try {
+        await ref.put(file);
+        alert("✅ Upload successful!");
+        console.log("File uploaded:", ref.fullPath);
+      } catch (err) {
+        console.error("Upload error:", err);
+        alert("❌ Upload failed: " + err.message);
+      }
+    }
+  </script>
 </body>
 </html>
