@@ -6,15 +6,15 @@
   <title>Vault Placeholder</title>
 </head>
 <body>
-  <img id="previewImage" src="" alt="Job Preview" width="300" style="display: none;" />
   <div id="scoreDisplay" style="margin-top: 20px;"></div>
 
   <h1>Vault Placeholder</h1>
   <p>This is where TrustQuote will live.</p>
+  <!-- Typing animation target -->
+  <div id="quote-box" class="mt-4 text-lg font-medium text-gray-700 whitespace-pre-line"></div>
 
   <h2>Your Vault</h2>
   <div id="vault">
-    <!-- Example vault cards (add as many as you need) -->
     <div class="vault-card" 
          data-score="3" 
          data-jobtype="Repipe" 
@@ -26,6 +26,7 @@
       <div><strong>Profile:</strong> premium</div>
       <div class="trustquote" style="margin-top:12px;"></div>
     </div>
+
     <div class="vault-card" 
          data-score="5" 
          data-jobtype="Water Heater" 
@@ -41,8 +42,6 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
     import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-functions.js";
 
     const firebaseConfig = {
@@ -54,29 +53,14 @@
       appId: "1:496029226738:web:f837e91b9df82ad78b1b9b"
     };
 
-    // Initialize Firebase only once
     let app;
     try { app = initializeApp(firebaseConfig); } catch (e) {}
-    const auth = getAuth();
-    const db = getFirestore();
     const functions = getFunctions();
 
-    // Handle preview image and score badge from URL params
+    // NeuraScore badge + explanation (one-time for query param)
     const params = new URLSearchParams(window.location.search);
-    const imageUrl = params.get("imgUrl") || "";
-    const score = params.get("score") || null;
-    const jobType = params.get("jobType") || null;
-    const profile = params.get("profile") || "standard";
-
-    const img = document.getElementById("previewImage");
+    const score = params.get("score");
     const scoreDisplay = document.getElementById("scoreDisplay");
-
-    if (imageUrl) {
-      img.src = imageUrl;
-      img.style.display = "block";
-      img.style.borderRadius = "12px";
-      img.style.marginTop = "20px";
-    }
 
     if (score) {
       const badge = document.createElement("div");
@@ -88,9 +72,36 @@
       badge.style.fontSize = "18px";
       badge.style.fontWeight = "bold";
       scoreDisplay.appendChild(badge);
+
+      const explanation = document.createElement("div");
+      explanation.style.fontSize = "14px";
+      explanation.style.marginTop = "8px";
+      explanation.style.color = "#444";
+
+      switch (parseInt(score)) {
+        case 1:
+          explanation.textContent = "Emergency: active failure or hazard.";
+          break;
+        case 2:
+          explanation.textContent = "Below standard: may function, but not code-compliant.";
+          break;
+        case 3:
+          explanation.textContent = "Meets code, but shows roughness or missed detail.";
+          break;
+        case 4:
+          explanation.textContent = "Clean and compliant: solid professional work.";
+          break;
+        case 5:
+          explanation.textContent = "Elite craftsmanship: flawless, code-perfect execution.";
+          break;
+        default:
+          explanation.textContent = "No score explanation available.";
+      }
+
+      scoreDisplay.appendChild(explanation);
     }
 
-    // TrustQuote logic for all vault cards
+    // TrustQuote injection logic for vault cards
     const trustQuoteCache = {};
     function getCacheKey(score, jobType, profile, docId) {
       return `${score}|${jobType}|${profile}|${docId}`;
@@ -107,12 +118,8 @@
       const cacheKey = getCacheKey(score, jobType, profile, docId);
 
       if (trustQuoteCache[cacheKey]) {
-        trustDiv.innerHTML = `
-          <div style="white-space:pre-line;line-height:1.6;margin-bottom:8px;">
-            ${trustQuoteCache[cacheKey]}
-          </div>
-          <div style="font-size:12px;color:#999;">Powered by <strong>NeuraPlumb</strong></div>
-        `;
+        const explanation = trustQuoteCache[cacheKey];
+        renderTrustQuote(trustDiv, jobType, score, profile, explanation);
         return;
       }
 
@@ -120,21 +127,87 @@
 
       try {
         const explainQuote = httpsCallable(functions, "explainQuote");
-        // Pass docId in the call
         const res = await explainQuote({ score, jobType, profile, docId });
         const explanation = res.data.explanation || "No explanation returned.";
         trustQuoteCache[cacheKey] = explanation;
-        trustDiv.innerHTML = `
-          <div style="white-space:pre-line;line-height:1.6;margin-bottom:8px;">
-            ${explanation}
-          </div>
-          <div style="font-size:12px;color:#999;">Powered by <strong>NeuraPlumb</strong></div>
-        `;
+        renderTrustQuote(trustDiv, jobType, score, profile, explanation);
       } catch (err) {
-        trustDiv.innerHTML = `<span style="color:#b71c1c;">⚠️ Could not load TrustQuote.</span>`;
+        trustDiv.innerHTML = `<span style="color:#b71c1c;">⚠️ AI quote failed to load.</span>`;
         console.error("TrustQuote error:", err);
       }
     });
+
+    // --- Improved TrustQuote rendering ---
+    function renderTrustQuote(trustDiv, jobType, score, profile, explanation) {
+      trustDiv.innerHTML = `
+        <div style="background:#f9f9f9;border-left:4px solid #1e88e5;padding:12px 16px;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,0.06);margin-bottom:8px;">
+          <div style="font-size:15px;line-height:1.6;color:#333;white-space:pre-line;">
+            “${explanation}”
+          </div>
+          <div style="margin-top:8px;font-size:12px;color:#777;">
+            <strong>Powered by</strong> <span style="color:#1e88e5;font-weight:bold;">NeuraPlumb</span>
+          </div>
+        </div>
+      `;
+
+      const printBtn = document.createElement("button");
+      printBtn.textContent = "📄 Download TrustQuote";
+      printBtn.style.marginTop = "10px";
+      printBtn.style.padding = "6px 12px";
+      printBtn.style.borderRadius = "6px";
+      printBtn.style.border = "1px solid #1e88e5";
+      printBtn.style.backgroundColor = "#1e88e5";
+      printBtn.style.color = "white";
+      printBtn.style.cursor = "pointer";
+      printBtn.style.fontSize = "13px";
+
+      printBtn.onclick = () => {
+        const printable = `
+          <div style="font-family: sans-serif; padding: 20px;">
+            <h2 style="color:#1e88e5;">NeuraPlumb – TrustQuote</h2>
+            <p><strong>Job Type:</strong> ${jobType}</p>
+            <p><strong>NeuraScore:</strong> ${score}</p>
+            <p><strong>Profile:</strong> ${profile}</p>
+            <hr style="margin:16px 0;" />
+            <p style="font-size:16px;white-space:pre-line;">${explanation}</p>
+          </div>
+        `;
+        const win = window.open('', '_blank');
+        win.document.write(`<html><head><title>TrustQuote</title></head><body>${printable}</body></html>`);
+        win.document.close();
+        win.print();
+      };
+
+      trustDiv.appendChild(printBtn);
+    }
+
+    // --- Typing animation for one-time TrustQuote at top ---
+    function typeQuote(text, elementId, speed = 30) {
+      const el = document.getElementById(elementId);
+      el.textContent = "";
+      let i = 0;
+      const typer = setInterval(() => {
+        el.textContent += text.charAt(i);
+        i++;
+        if (i >= text.length) clearInterval(typer);
+      }, speed);
+    }
+
+    // 🔥 One-time typing effect if page has score + jobType + profile + docId
+    const jobType = params.get("jobType");
+    const profile = params.get("profile");
+    const docId = params.get("docId");
+
+    if (score && jobType && profile && docId) {
+      const explainQuote = httpsCallable(functions, "explainQuote");
+      explainQuote({ score, jobType, profile, docId }).then((res) => {
+        const explanation = res.data.explanation || "No explanation returned.";
+        typeQuote(explanation, "quote-box");
+      }).catch((err) => {
+        document.getElementById("quote-box").textContent = "⚠️ Failed to load TrustQuote.";
+        console.error("One-time quote error:", err);
+      });
+    }
   </script>
 </body>
 </html>

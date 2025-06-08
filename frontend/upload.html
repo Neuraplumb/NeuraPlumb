@@ -2,10 +2,6 @@
 <html>
   <head>
     <title>NeuraPlumb Upload Portal</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   </head>
   <body>
     <h1>Upload a Plumbing Photo</h1>
@@ -13,37 +9,39 @@
     <button onclick="uploadFile()">Upload</button>
     <p id="status"></p>
 
-    <h2>Your Vault</h2>
-    <div id="vault"></div>
-
     <script>
-  async function uploadFile() {
-    const file = document.getElementById("fileInput").files[0];
-    if (!file) return alert("Please select a file.");
+      async function uploadFile() {
+        const file = document.getElementById("fileInput").files[0];
+        if (!file) return alert("Please select a file.");
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("userId", "test-user-id"); // Replace later with real user or session
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("jobType", "test");
 
-    try {
-      const res = await fetch("https://us-central1-neuraplumb-temp.cloudfunctions.net/uploadImage", {
-        method: "POST",
-        body: formData
-      });
+        // 🔍 Log all formData entries for debugging
+        for (const pair of formData.entries()) {
+          console.log(pair[0] + ':', pair[1]);
+        }
 
-      const data = await res.json();
-      if (res.ok) {
-        document.getElementById("status").innerText = `✅ Upload complete! Score: ${data.score}`;
-        console.log("Redirecting to vault.html...");
-        window.location.href = `/vault.html?imgUrl=${encodeURIComponent(data.imageUrl)}&score=${data.score}`;
-      } else {
-        throw new Error(data.error || "Unknown error");
+        try {
+          const res = await fetch("https://us-central1-neuraplumb-temp.cloudfunctions.net/uploadImage", {
+            method: "POST",
+            body: formData,
+            // ✅ DO NOT add headers here — let browser define multipart boundaries
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            document.getElementById("status").innerText = `✅ ${result.message}`;
+          } else {
+            throw new Error(result.error || "Upload failed");
+          }
+        } catch (err) {
+          console.error("❌ Upload failed:", err);
+          document.getElementById("status").innerText = "❌ Upload failed";
+        }
       }
-    } catch (err) {
-      console.error("❌ Upload failed:", err);
-      alert("Upload failed. See console for details.");
-    }
-  }
-</script>
+    </script>
   </body>
 </html>

@@ -1,6 +1,7 @@
 {
   "functions": {
-    "source": "functions"
+    "source": "functions",
+    "runtime": "nodejs18"
   },
   "hosting": {
     "public": "frontend",
@@ -8,6 +9,12 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "/uploadImage",
+        "function": "uploadImage"
+      }
     ]
   },
   "emulators": {
@@ -27,5 +34,3 @@
   },
   "singleProjectMode": true
 }
-
-
